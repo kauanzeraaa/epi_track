@@ -1,4 +1,4 @@
-@import url("https://use.typekit.net/btg3dhl.css");
+
 
 :root{
   --color-white:  #F2F2F2;
@@ -7,21 +7,4 @@
   --color-blue:   #2C3E50;
 }
 
-*{
-  margin: 0;
-  padding: 0;
-}
 
-body{
-  font-family: "poppins", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  background-color: var(--color-white);
-}
-
-.header{
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  box-shadow: 1px, 1px, 4px, var(--color-white2);
-}
