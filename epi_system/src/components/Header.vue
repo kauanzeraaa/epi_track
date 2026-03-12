@@ -11,7 +11,10 @@ import router from '../router';
       <router-link to="/">Home </router-link>
       <router-link to="/resources"> Resources </router-link>
       <router-link to="/contact"> Contact </router-link>
+
+      <button class="login_button">LOGIN</button>
     </nav>
+
   </div>
 </template>
 
@@ -28,7 +31,7 @@ import router from '../router';
   position: relative;
   display: flex;
   align-items: center;
-  padding: 10px 40px;
+  padding: 20px 40px;
 
   box-shadow: 1px 1px 4px var(--color-white2);
 
@@ -61,5 +64,19 @@ a {
 
 .navigation_header a:hover {
   transform: translateY(-4px);
+}
+
+.login_button{
+  width: 100px;
+  height: 30px;
+  color: white;
+  background-color: #2C3E50;
+  border-radius: 8px;
+  font-size: 18px;
+  border-style: none;
+  cursor: pointer;
+}
+.login_button:hover{
+  transform: scale(1.03);
 }
 </style>
