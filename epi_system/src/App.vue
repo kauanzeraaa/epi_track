@@ -1,12 +1,13 @@
 <template>
   <div>
-
     <router-view />
   </div>
 
 </template>
 
 <style>
+@import url("https://use.typekit.net/btg3dhl.css");
+
 *{
   margin: 0;
   padding: 0;
@@ -14,6 +15,14 @@
 }
 
 body{
+  background-repeat: no-repeat;
   margin: 0;
+  padding: 0px;
+  box-sizing: border-box;
+  font-family: "poppins", sans-serif;
+  width: 100%;
+  height: 100vh;
+  background-image: radial-gradient(circle, #f1f1f1, #cecdcd);
 }
+
 </style>
