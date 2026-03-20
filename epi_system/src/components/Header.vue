@@ -38,13 +38,10 @@ import router from '../router';
   font-family: "poppins", sans-serif;
   font-weight: 400;
   font-style: normal;
-  /* background-color: rgba(255, 255, 255, 0.2); */
   background-color: #FFFFFF10;
 }
 
-.img_logo {
-  width: 110px;
-}
+.img_logo { width: 110px; }
 
 a {
   text-decoration: none;
@@ -56,21 +53,16 @@ a {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 30px;
-}
-
-.navigation_header a {
+  gap: 40px;
+}.navigation_header a {
   transition: transform 0.2s;
-}
-
-.navigation_header a:hover {
+}.navigation_header a:hover {
   transform: translateY(-4px);
 }
 
 .link{
   position: relative;
 }
-
 .link::after{
   content: '';
   position: absolute;
