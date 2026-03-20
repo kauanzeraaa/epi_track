@@ -26,10 +26,10 @@
       HeaderTemplate
     }
   }
+
 </script>
 
 <style scoped>
-@import url("https://use.typekit.net/btg3dhl.css");
 
 .container {
   display: flex;
@@ -49,7 +49,7 @@
 }
 
 .home-div {
-  font-family: "poppins", sans-serif;
+  font-family: var(--main-font);
   width: 28%;
 }
 
