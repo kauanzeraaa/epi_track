@@ -1,8 +1,12 @@
+@import url("https://use.typekit.net/btg3dhl.css");
+
 :root{
   --color-white:  #F2F2F2;
   --color-white2: #CECECE;
   --color-orange: #F39C12;
   --color-blue:   #2C3E50;
+
+  --main-font: "poppins", sans-serif;
 }
 
 
