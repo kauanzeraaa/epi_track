@@ -39,6 +39,8 @@
   width: 100%;
   margin: 0;
   gap: 15%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .texts{
@@ -46,7 +48,7 @@
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
-  gap: 1.2rem;
+  gap: 0.5rem;
 }
 
 .home-div {
@@ -54,9 +56,17 @@
   width: 28%;
 }
 
+.imagem {
+  width: 30%;
+  display: flex;
+  justify-content: center;
+}
+
 .imagem img {
-  max-width: 100%;
+  width: 100%;
+  max-width: 600px;
   height: auto;
+  object-fit: contain;
 }
 
 .tittle{
@@ -68,6 +78,7 @@
   color: var(--color-orange);
   line-height: 110%;
   font-weight: 400;
+  margin-top: -20px;
 }
 
 .button{
@@ -79,8 +90,68 @@
   border-style: none;
   cursor: pointer;
   text-decoration: none;
+  margin-top: 1rem;
 }
 .button:hover{
   transform: scale(1.03);
+}
+
+/* Telas até 1024px */
+@media (max-width: 1024px) {
+  .container {
+    gap: 5%;
+    padding: 0 2rem;
+  }
+
+  .home-div {
+    width: 45%;
+  }
+
+  .imagem {
+    width: 35%;
+  }
+
+  .tittle {
+    font-size: 48px;
+  }
+}
+
+/* Telas até 768px */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 3rem;
+    padding: 3rem 1.5rem;
+    height: auto;
+  }
+
+  .home-div {
+    width: 100%;
+  }
+
+  .texts {
+    align-items: center;
+    text-align: center;
+  }
+
+  .imagem {
+    width: 60%;
+  }
+
+  .tittle {
+    font-size: 38px;
+    line-height: 110%;
+  }
+}
+
+/* Telas até 480px */
+@media (max-width: 480px) {
+  .imagem {
+    width: 100%;
+  }
+  
+  .tittle {
+    font-size: 32px;
+  }
 }
 </style>

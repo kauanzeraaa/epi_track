@@ -103,6 +103,7 @@ export default {
   align-items: center;
   gap: 2rem;
   width: 100%;
+  padding-bottom: 60px;
 }
 
 .texts {
@@ -126,7 +127,8 @@ export default {
 
 .card-alert {
   width: 80%;
-  height: 90px;
+  min-height: 90px;
+  height: auto;
   padding: 1.5rem;
   border-radius: 8px;
   background-image: linear-gradient(to left, #2C3E5040, #AFBAC540);
@@ -138,5 +140,46 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.card-alert img {
+  width: 40px;
+  height: 50px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* --- Telas menores que 768px --- */
+@media (max-width: 768px) {
+  
+  /* Diminui o tamanho do título principal para não ocupar a tela toda */
+  .tittle {
+    font-size: 28px;
+    padding: 30px 20px 40px;
+  }
+
+  /* Faz o card ocupar mais espaço na tela do celular */
+  .card-alert {
+    width: 90%;
+    padding: 1rem;
+  }
+
+  /* Ajusta o tamanho da fonte dentro dos cards */
+  .card-text h2 {
+    font-size: 18px;
+  }
+
+  .card-text p {
+    font-size: 14px;
+  }
+}
+
+/* --- Telas muito pequenas, menores que 480px --- */
+@media (max-width: 480px) {
+  .card-alert {
+    width: 95%;
+    flex-direction: column;
+    text-align: center;
+  }
 }
 </style>
