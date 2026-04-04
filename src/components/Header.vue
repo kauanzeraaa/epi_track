@@ -36,7 +36,7 @@ const closeMenu = () => {
       </nav>
       
       <div class="header_login">
-        <button class="login_button" @click="closeMenu">LOGIN</button>
+        <router-link class="login_button" to="/login" @click="closeMenu">LOGIN</router-link>
       </div>
     </div>
   </header>
