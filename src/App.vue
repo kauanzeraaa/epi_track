@@ -21,8 +21,9 @@ body{
   box-sizing: border-box;
   font-family: "poppins", sans-serif;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   background-image: radial-gradient(circle, #f1f1f1, #cecdcd);
+  overflow-x: hidden;
 }
 
 </style>
