@@ -1,7 +1,7 @@
 <template>
   <HeaderTemplate />
 
-  <main class="login-page">
+  <section class="login-page">
     <div class="login-card">
       
       <div class="login-left">
@@ -42,7 +42,7 @@
       </div>
 
     </div>
-  </main>
+  </section>
 </template>
 
 <script setup>
