@@ -91,43 +91,66 @@ a {
   transform: translateX(-50%);
   display: flex;
   gap: 40px;
-}.navigation_header a {
-  transition: transform 0.2s;
-}.navigation_header a:hover {
-  transform: translateY(-4px);
 }
 
-.link{
+.navigation_header a {
+  transition: color 0.25s ease;
+}
+
+.navigation_header a:hover {
+  color: var(--color-orange);
+}
+
+.link {
   position: relative;
 }
-.link::after{
+
+/* Underline laranja no hover */
+.link::after {
   content: '';
   position: absolute;
   bottom: -2px;
   left: 50%;
-  transform: translate(-50%);
+  transform: translateX(-50%);
   width: 0;
   height: 2px;
-  background-color: var(--color-blue);
+  background-color: var(--color-orange);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
-.link.router-link-exact-active::after{
+
+.link:hover::after {
   width: 100%;
 }
 
-.login_button{
+/* Underline azul para a página ativa */
+.link.router-link-exact-active::after {
+  width: 100%;
+  background-color: var(--color-blue);
+}
+
+.link.router-link-exact-active {
+  color: var(--color-blue);
+}
+
+.login_button {
   width: 100px;
   height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: white;
   background-color: #2C3E50;
   border-radius: 8px;
   font-size: 18px;
   border-style: none;
   cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-.login_button:hover{
-  transform: scale(1.03);
+
+.login_button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.45);
 }
 
 /* --- RESPONSIVIDADE DA HEADER --- */
@@ -152,9 +175,7 @@ a {
 /* Telas até 768px */
 @media (max-width: 768px) {
   .header {
-    flex-direction: column;
-    gap: 20px;
-    padding: 20px 15px;
+    padding: 15px 20px;
   }
 
   /* Estiliza e mostra as 3 barrinhas */

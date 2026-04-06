@@ -9,4 +9,8 @@
   --main-font: "poppins", sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 

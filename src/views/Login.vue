@@ -26,14 +26,21 @@
 
           <div class="input-group">
             <span class="input-icon">🔒</span>
-            <input type="password" v-model="password" placeholder="Senha" required />
+            <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="Senha" required />
+            <button type="button" class="toggle-password" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'">
+              {{ showPassword ? '🙈' : '👁️' }}
+            </button>
           </div>
 
           <div class="forgot-password">
             <a href="#">Esqueceu a senha?</a>
           </div>
 
-          <button type="submit" class="submit-btn">ENTRAR</button>
+          <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
+
+          <button type="submit" class="submit-btn" :disabled="isLoading">
+            {{ isLoading ? 'ENTRANDO...' : 'ENTRAR' }}
+          </button>
         </form>
 
         <div class="login-footer">
@@ -49,14 +56,18 @@
 import HeaderTemplate from '../components/Header.vue'
 import { ref } from 'vue'
 
-// Variáveis reativas que vão guardar o que o usuário digitar
 const email = ref('')
 const password = ref('')
+const showPassword = ref(false)
+const isLoading = ref(false)
+const errorMsg = ref('')
 
-// Função que será chamada ao clicar em "Entrar"
-const handleLogin = () => {
-  // É aqui que você vai colocar o código do Supabase futuramente!
+const handleLogin = async () => {
+  isLoading.value = true
+  errorMsg.value = ''
+  // TODO: substituir pelo login do Supabase
   console.log('Tentando fazer login com:', email.value, password.value)
+  isLoading.value = false
 }
 </script>
 
@@ -176,6 +187,24 @@ const handleLogin = () => {
   outline: none; /* Tira aquela borda azul padrão do navegador */
 }
 
+.toggle-password {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+  line-height: 1;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.error-msg {
+  color: #e74c3c;
+  font-size: 13px;
+  text-align: center;
+  margin-top: -8px;
+}
+
 /* Links e Botão */
 .forgot-password {
   text-align: right;
@@ -205,9 +234,15 @@ const handleLogin = () => {
   margin-top: 10px;
 }
 
-.submit-btn:hover {
+.submit-btn:hover:not(:disabled) {
   background-color: #1a252f;
   transform: scale(1.02);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Rodapé com Solicitar Acesso */
