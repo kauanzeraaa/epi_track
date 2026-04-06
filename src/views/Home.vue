@@ -48,7 +48,7 @@
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
-  gap: 0.5rem;
+  gap: 2rem;
 }
 
 .home-div {
@@ -82,7 +82,7 @@
 }
 
 .button{
-  padding: 5px 30px;
+  padding: 10px 30px;
   color: white;
   background-color: #2C3E50;
   border-radius: 10px;
@@ -91,9 +91,12 @@
   cursor: pointer;
   text-decoration: none;
   margin-top: 1rem;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .button:hover{
   transform: scale(1.03);
+  background-color: #1a252f;
+  box-shadow: 0 6px 16px rgba(44, 62, 80, 0.35);
 }
 
 /* Telas até 1024px */

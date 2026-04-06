@@ -95,21 +95,12 @@ export default {
   </section>
 </template>
 
-<style>
-.section-cards {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  width: 100%;
-  padding-bottom: 60px;
-}
-
+<style scoped>
 .texts {
   max-width: 800px;
   margin: 0 auto;
   text-align: center;
+  padding: 0 20px;
 }
 
 .tittle {
@@ -118,15 +109,26 @@ export default {
   padding: 40px 0px 60px;
 }
 
-.h2_tittle {
-  display: flex;
-  align-items: center;
-  font-size: 20px;
-  width: 200px;
+.section-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  width: 90%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+/* When 7 cards (odd count), span the lone last card full width */
+.card-alert:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  max-width: 550px;
+  justify-self: center;
+  width: 100%;
 }
 
 .card-alert {
-  width: 80%;
+  width: 100%;
   min-height: 90px;
   height: auto;
   padding: 1.5rem;
@@ -140,6 +142,12 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-alert:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .card-alert img {
@@ -151,20 +159,27 @@ export default {
 
 /* --- Telas menores que 768px --- */
 @media (max-width: 768px) {
-  
-  /* Diminui o tamanho do título principal para não ocupar a tela toda */
   .tittle {
     font-size: 28px;
     padding: 30px 20px 40px;
   }
 
-  /* Faz o card ocupar mais espaço na tela do celular */
-  .card-alert {
+  .section-cards {
+    grid-template-columns: 1fr;
     width: 90%;
+    padding-bottom: 40px;
+  }
+
+  .card-alert:last-child:nth-child(odd) {
+    grid-column: auto;
+    max-width: none;
+    justify-self: auto;
+  }
+
+  .card-alert {
     padding: 1rem;
   }
 
-  /* Ajusta o tamanho da fonte dentro dos cards */
   .card-text h2 {
     font-size: 18px;
   }
@@ -177,7 +192,6 @@ export default {
 /* --- Telas muito pequenas, menores que 480px --- */
 @media (max-width: 480px) {
   .card-alert {
-    width: 95%;
     flex-direction: column;
     text-align: center;
   }
