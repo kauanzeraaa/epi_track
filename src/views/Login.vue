@@ -1,11 +1,15 @@
 <template>
-  <HeaderTemplate />
+ 
+ <main>
+  <div class="btn_voltar">
+    <router-link to="/" class="voltar-link"><img src="../assets/arrow_left.png" alt="Voltar" class="voltar-icon" />Voltar</router-link>
+  </div>
 
   <section class="login-page">
     <div class="login-card">
       
       <div class="login-left">
-        <img src="../assets/logo_epi_track.png" alt="EPI Track Logo" class="login-logo" />
+        <img src="../assets/dark_logo_version2.png" alt="EPI Track Logo" class="login-logo" />
         <h2>Sistema de Gestão de EPIs</h2>
         <p>Bem-vindo de volta! Garanta a segurança e a conformidade da sua equipe com o EPI TRACK.</p>
         
@@ -68,6 +72,7 @@
 
     </div>
   </section>
+  </main>
 </template>
 
 <script setup>
@@ -83,7 +88,6 @@ const errorMsg = ref('')
 const handleLogin = async () => {
   isLoading.value = true
   errorMsg.value = ''
-  // TODO: substituir pelo login do Supabase
   console.log('Tentando fazer login com:', email.value, password.value)
   isLoading.value = false
 }
@@ -91,16 +95,21 @@ const handleLogin = async () => {
 
 <style scoped>
 /* --- CONTAINER PRINCIPAL --- */
+
+main{
+  overflow-x: hidden;
+}
+
 .login-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 90px); /* Ocupa a tela inteira descontando o Header */
+  min-height: calc(100vh - 90px);
   padding: 20px;
   box-sizing: border-box;
 }
 
-/* O "Cartão" central do Login */
+/* 'cartão' de Login */
 .login-card {
   display: flex;
   width: 100%;
@@ -108,10 +117,10 @@ const handleLogin = async () => {
   background-color: #ffffff;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  overflow: hidden; /* Corta as quinas de dentro para respeitar o arredondamento */
+  overflow: hidden;
 }
 
-/* --- LADO ESQUERDO (Escuro) --- */
+/* --- LADO ESQUERDO --- */
 .login-left {
   flex: 1;
   background-color: #2C3E50;
@@ -127,7 +136,6 @@ const handleLogin = async () => {
 .login-logo {
   width: 160px;
   margin-bottom: 30px;
-  /* Se a sua logo atual tiver letras escuras, você pode precisar de uma versão com letras brancas aqui */
 }
 
 .login-left h2 {
@@ -141,7 +149,7 @@ const handleLogin = async () => {
   opacity: 0.8;
 }
 
-/* --- LADO DIREITO (Claro/Formulário) --- */
+/* --- LADO DIREITO --- */
 .login-right {
   flex: 1;
   padding: 50px 40px;
@@ -166,7 +174,7 @@ const handleLogin = async () => {
   color: #666;
 }
 
-/* Formulário e Inputs */
+/* formulário e inputs */
 .login-form {
   display: flex;
   flex-direction: column;
@@ -183,7 +191,7 @@ const handleLogin = async () => {
   transition: border-color 0.3s;
 }
 
-/* Quando o usuário clica dentro do input, a borda fica laranja */
+/* quando o usuário clica dentro do input, a borda fica laranja */
 .input-group:focus-within {
   border-color: #F39C12; 
 }
@@ -203,7 +211,7 @@ const handleLogin = async () => {
   padding: 15px 0;
   font-size: 16px;
   color: #333;
-  outline: none; /* Tira aquela borda azul padrão do navegador */
+  outline: none;
 }
 
 .toggle-password {
@@ -233,7 +241,7 @@ const handleLogin = async () => {
 .forgot-password {
   text-align: right;
   font-size: 13px;
-  margin-top: -5px; /* Puxa um pouquinho pra cima para ficar perto do input de senha */
+  margin-top: -5px;
 }
 
 .forgot-password a {
@@ -269,7 +277,7 @@ const handleLogin = async () => {
   transform: none;
 }
 
-/* Rodapé com Solicitar Acesso */
+/* rodapé com 'Solicitar Acesso' */
 .login-footer {
   text-align: center;
   margin-top: 30px;
@@ -287,9 +295,29 @@ const handleLogin = async () => {
   text-decoration: underline;
 }
 
+.btn_voltar{
+  display: flex;
+  align-items: center;
+  margin: 20px;
+}
+
+.voltar-icon{
+  width: 20px;
+  margin-right: 5px;
+}
+
+.voltar-link{
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 768px) {
-  /* Em celulares, o card fica em coluna: A marca vai pra cima e o formulário pra baixo */
   .login-card {
     flex-direction: column;
     max-width: 450px;
