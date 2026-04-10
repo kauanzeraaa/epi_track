@@ -6,6 +6,7 @@ import Resources from '../views/Resources.vue'
 import Contact from '../views/Contact.vue'
 import Login from '../views/Login.vue'
 import UserLogon from '../views/UserLogon.vue'
+import Dashboard from '../views/Dashboard.vue'
 
 // Defining route access
 const routes = [
@@ -13,7 +14,8 @@ const routes = [
   { path: '/resources', component: Resources},
   { path: '/contact', component: Contact},
   { path: '/login', component: Login},
-  { path: '/logon', component: UserLogon}
+  { path: '/logon', component: UserLogon},
+  { path: '/dashboard', component: Dashboard}
 ]
 
 const router =  createRouter({
