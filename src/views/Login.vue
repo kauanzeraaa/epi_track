@@ -9,11 +9,10 @@
     <div class="login-card">
       
       <div class="login-left">
-        <img src="../assets/dark_logo_version2.png" alt="EPI Track Logo" class="login-logo" />
+        <img src="../assets/dark_logo_version2.png" alt="EPI Track Logo" draggable="false" class="login-logo" />
         <h2>Sistema de Gestão de EPIs</h2>
         <p>Bem-vindo de volta! Garanta a segurança e a conformidade da sua equipe com o EPI TRACK.</p>
-        
-        </div>
+      </div>
 
       <div class="login-right">
         <div class="login-header">
@@ -25,32 +24,19 @@
           
           <div class="input-group">
             <span class="input-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                <path d="m2 7 10 7 10-7"/>
-              </svg>
+              <img src="../assets/iconmonstr-email.png" alt="Email Icon" draggable="false" class="custom-icon">
             </span>
             <input type="email" v-model="email" placeholder="E-mail" required />
           </div>
 
           <div class="input-group">
             <span class="input-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
+              <img src="../assets/iconmonstr-lock.png" alt="Password Icon" draggable="false" class="custom-icon">
             </span>
             <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="Senha" required />
             <button type="button" class="toggle-password" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'">
-              <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94"/>
-                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
-              </svg>
+              <img v-if="!showPassword" src="../assets/show-password.png" alt="Mostrar senha" class="password-icon" draggable="false">
+              <img v-else src="../assets/hide-password.png" alt="Ocultar senha" class="password-icon" draggable="false">
             </button>
           </div>
 
@@ -60,7 +46,7 @@
 
           <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
 
-          <button type="submit" class="submit-btn" :disabled="isLoading">
+          <button @click="handleLogin" type="submit" class="submit-btn" :disabled="isLoading">
             {{ isLoading ? 'ENTRANDO...' : 'ENTRAR' }}
           </button>
         </form>
@@ -76,25 +62,47 @@
 </template>
 
 <script setup>
-import HeaderTemplate from '../components/Header.vue'
-import { ref } from 'vue'
 
+import { ref } from 'vue'
+import { useSupabase } from '../composable/useSupabase'
+import { useRouter } from 'vue-router'
+
+// Pega o cliente Supabase e o Vue Router já onfigurados
+const { supabase } = useSupabase()
+const router = useRouter()
+
+// Variaveis que o Vue monitora automaticamente para atualizar a interface
 const email = ref('')
 const password = ref('')
+const errorMsg = ref('')
+
 const showPassword = ref(false)
 const isLoading = ref(false)
-const errorMsg = ref('')
 
 const handleLogin = async () => {
   isLoading.value = true
   errorMsg.value = ''
-  console.log('Tentando fazer login com:', email.value, password.value)
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.value,
+    password: password.value
+  })
+
+  if (error) {
+    errorMsg.value = 'Credenciais Inválidas.'
+    isLoading.value = false
+    return
+  }
+
+  router.push('/Dashboard') // Redireciona para o dashboard após login bem-sucedido
+
   isLoading.value = false
 }
+
+
+
 </script>
 
 <style scoped>
-/* --- CONTAINER PRINCIPAL --- */
 
 main{
   overflow-x: hidden;
@@ -136,6 +144,9 @@ main{
 .login-logo {
   width: 160px;
   margin-bottom: 30px;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 
 .login-left h2 {
@@ -193,15 +204,21 @@ main{
 
 /* quando o usuário clica dentro do input, a borda fica laranja */
 .input-group:focus-within {
-  border-color: #F39C12; 
+  border-color: #F39C12;
 }
 
-.input-icon {
+.custom-icon {
   display: flex;
   align-items: center;
   color: #aaa;
   margin-right: 10px;
   flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+    opacity: 0.5;
 }
 
 .input-group input {
@@ -228,6 +245,15 @@ main{
 
 .toggle-password:hover {
   color: #2C3E50;
+}
+
+.password-icon {
+  width: 18px;
+  height: 18px;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  opacity: 0.8;
 }
 
 .error-msg {
