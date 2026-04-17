@@ -1,6 +1,6 @@
 <template>
     <main>
-        <HeaderTemplate />
+        <SideBar />
     <section class="dashboard">
         <div class="dashboard-container">
         <h1>Bem-vindo ao Dashboard do EPI TRACK</h1>
@@ -10,4 +10,13 @@
     </main>
 </template>
 
-<script> export default{name: "Dashboard"} </script>
+<script>
+import SideBar from '../components/SideBar.vue';
+
+    export default{
+        name: "Dashboard",
+        components: {
+            SideBar
+        }
+    }
+</script>
