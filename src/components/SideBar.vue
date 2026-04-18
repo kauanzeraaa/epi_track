@@ -50,7 +50,7 @@ import { useSupabase } from '../composable/useSupabase'
 const router = useRouter()
 const { supabase } = useSupabase()
 
-const perfilUsuario = ref('Comum')
+const perfilUsuario = ref('Administrador') // Exemplo de perfil, pode ser dinâmico
 
 const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -60,7 +60,7 @@ const handleLogout = async () => {
 
 <style scoped>
     .sidebar {
-        width: 100px;
+        width: 90px;
         position: fixed;
         top: 0;
         bottom: 0;
