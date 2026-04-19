@@ -4,7 +4,7 @@ import { useSupabase } from './useSupabase'
 // Variáveis globais para armazenar o estado de autenticação
 const currentUser = ref(null)
 const userProfile = ref(null)
-const isAuthenticated = ref(false)
+const isAuthLoading = ref(false)
 
 // Função para gerenciar o estado de autenticação do usuário e buscar seu perfil
 export function useAuthStore() {
@@ -21,7 +21,7 @@ export function useAuthStore() {
 
                 const { data, error } = await supabase
                     .from('vw_usuarios_completos')
-                    .select('nome', 'perfil_acesso', 'foto_perfil')
+                    .select('*')
                     .eq('id', user.id)
                     .single()
                 
@@ -41,13 +41,13 @@ export function useAuthStore() {
     const clearAuth = () => {
         currentUser.value = null
         userProfile.value = null
-        isAuthenticated.value = false
+        isAuthLoading.value = false
     }
 
     return {
         currentUser,
         userProfile,
-        isAuthenticated,
+        isAuthLoading,
         fetchUserProfile,
         clearAuth
     }

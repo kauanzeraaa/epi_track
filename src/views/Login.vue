@@ -66,10 +66,12 @@
 import { ref } from 'vue'
 import { useSupabase } from '../composable/useSupabase'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../composable/useAuthStore'
 
 // Pega o cliente Supabase e o Vue Router já onfigurados
 const { supabase } = useSupabase()
 const router = useRouter()
+const { fetchUserProfile } = useAuthStore()
 
 // Variaveis que o Vue monitora automaticamente para atualizar a interface
 const email = ref('')
@@ -93,8 +95,10 @@ const handleLogin = async () => {
     return
   }
 
-  router.push('/Dashboard') // Redireciona para o dashboard após login bem-sucedido
+  // Antes de mudar de tela, busca o perfil no banco
+  await fetchUserProfile()
 
+  router.push('/Dashboard') // Redireciona para o dashboard após login bem-sucedido
   isLoading.value = false
 }
 

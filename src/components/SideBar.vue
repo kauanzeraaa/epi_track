@@ -2,12 +2,12 @@
     <aside class="sidebar">
         <section class="sidebar-icons">
 
-            <router-link to="/dashboard" class="nav-item" title="Dashboard">
+            <router-link to="/dashboard" class="nav-item">
                 <img src="../assets/icons_sideBar/dashboard_home.png" alt="Dashboard" class="sidebar-icon" />
                 <span class="nav-label">Dashboard</span>
             </router-link>
 
-            <template v-if="perfilUsuario === 'Administrador'">
+            <template v-if="userProfile?.perfil_acesso === 'Administrador'">
                 <router-link to="/catalog" class="nav-item">
                     <img src="../assets/icons_sideBar/catalogo_epis.png" alt="Catálogo" class="sidebar-icon" />
                     <span class="nav-label">Catálogo</span>
@@ -46,14 +46,16 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSupabase } from '../composable/useSupabase'
+import { useAuthStore } from '../composable/useAuthStore'
 
 const router = useRouter()
 const { supabase } = useSupabase()
 
-const perfilUsuario = ref('Administrador') // Exemplo de perfil, pode ser dinâmico
+const { userProfile, clearAuth } = useAuthStore()
 
 const handleLogout = async () => {
     await supabase.auth.signOut()
+    clearAuth()
     router.push('/')
 }
 </script>
