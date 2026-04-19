@@ -1,3 +1,23 @@
+<script setup>
+import { onMounted } from 'vue'
+import { useSupabase } from './composable/useSupabase'
+import { useAuthStore } from './composable/useAuthStore'
+
+const { supabase } = useSupabase()
+const { fetchUserProfile } = useAuthStore()
+
+onMounted(() => {
+  // Esse "espião" do Supabase dispara assim que o app carrega 
+  // ou quando o usuário faz login/logout
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      // Se a pessoa atualizou a página mas ainda tem sessão, busca os dados!
+      fetchUserProfile()
+    }
+  })
+})
+</script>
+
 <template>
   <div>
     <router-view />
