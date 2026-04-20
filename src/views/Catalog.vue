@@ -87,21 +87,28 @@
                 
                 <div class="progress-track">
                   <div 
-                    class="progress-fill" 
+                    class="progress-fill"
                     :class="epi.estoque_atual <= epi.estoque_minimo ? 'fill-danger' : 'fill-success'" 
                     :style="{ width: Math.min((epi.estoque_atual / Math.max(epi.estoque_minimo * 2, 1)) * 100, 100) + '%' }">
                   </div>
                 </div>
               </div>
+
+              <div class="card-actions" v-if="isAdmin">
+                <button @click.stop="editEpi(epi)" class="action-btn edit">Editar</button>
+                <button @click.stop="deleteEpi(epi.id)" class="action-btn delete">Excluir</button>
+              </div>
+
+              
             </div>
 
           </div>
         </div>
 
-        <div class="empty-state" v-else-if="!isLoadingList">
+        <div class="empty-state" v-if="filteredEpis.length === 0 && !isLoadingList">
           <img src="../assets/cards/inventory.png" alt="" class="empty-icon" />
-          <p>Nenhum EPI cadastrado ainda.</p>
-          <span>Use o formulário ao lado para adicionar o primeiro equipamento.</span>
+          <p>Nenhum EPI encontrado.</p>
+          <span>Use o formulário ao lado para adicionar equipamentos ou mude os filtros de busca.</span>
         </div>
 
       </section>
@@ -176,7 +183,7 @@
             <button type="button" class="btn-secondary" @click="resetForm">Limpar</button>
             <button type="submit" class="btn-primary" :disabled="isSaving">
               <span v-if="isSaving" class="btn-loading"></span>
-              {{ isSaving ? 'Salvando...' : 'Cadastrar EPI' }}
+              {{ isSaving ? 'Salvando...' : (editingId ? 'Salvar Alterações' : 'Cadastrar EPI') }}
             </button>
           </div>
 
@@ -190,14 +197,21 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useSupabase } from '../composable/useSupabase'
+import { useAuthStore } from '../composable/useAuthStore'
 
 const { supabase } = useSupabase()
+const { userProfile } = useAuthStore()
+
+const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
 const isSaving = ref(false)
 const imageFile = ref(null)
 const imagePreview = ref(null)
 const searchQuery = ref('')
 const activeFilter = ref('todos')
+
+// ID do EPI sendo editado
+const editingId = ref(null)
 
 const epis = ref([])
 const isLoadingList = ref(true)
@@ -206,7 +220,7 @@ const filters = [
   { label: 'Todos', value: 'todos' },
   { label: 'Estoque OK', value: 'ok' },
   { label: 'Estoque Baixo', value: 'baixo' },
-  { label: 'CA Vencendo', value: 'vencendo' },
+  { label: 'CA Vencendo (30 dias)', value: 'vencendo' },
 ]
 
 // apresenta os EPIs na tela
@@ -234,7 +248,7 @@ onMounted(() => {
 
 const form = reactive({
   nome: '',
-  validade_ca: '',
+  ca: '',
   tamanho: 'M',
   estoque_atual: 0,
   estoque_minimo: 5,
@@ -252,7 +266,7 @@ const handleFileChange = (event) => {
 const resetForm = () => {
   Object.assign(form, {
     nome: '',
-    validade_ca: '',
+    ca: '',
     tamanho: 'M',
     estoque_atual: 0,
     estoque_minimo: 5,
@@ -260,6 +274,42 @@ const resetForm = () => {
   })
   imageFile.value = null
   imagePreview.value = null
+  editingId.value = null
+}
+
+// função para carregar dados do formulário
+const editEpi = (epi) => {
+  editingId.value = epi.id
+  form.nome = epi.nome
+  form.ca = epi.ca
+  form.tamanho = epi.tamanho
+  form.estoque_atual = epi.estoque_atual
+  form.estoque_minimo = epi.estoque_minimo
+  form.validade_ca_date = epi.validade_ca
+  imagePreview.value = epi.foto_epi
+
+  // rola a tela para o topo para o usuario ver o formulario
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// função para deletar epi
+const deleteEpi = async (id) => {
+  if(!confirm('Tem certeza que deseja excluir este EPI?')) return
+
+  try {
+    const { error } = await supabase
+      .from('epis')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+    alert("EPI excluído com sucesso!")
+
+    // atualiza lista de epis
+    fetchEpis()
+  } catch(error) {
+    console.error('Erro ao excluir EPI:', error.message)
+  }
 }
 
 const handleSubmit = async () => {
@@ -285,22 +335,46 @@ const handleSubmit = async () => {
       publicImageUrl = urlData.publicUrl
     }
 
-    const { error } = await supabase
-      .from('epis')
-      .insert({
-        nome: form.nome,
-        ca: form.ca,
-        validade_ca: form.validade_ca_date,
-        tamanho: form.tamanho,
-        estoque_atual: form.estoque_atual,
-        estoque_minimo: form.estoque_minimo,
-        foto_epi: publicImageUrl
-      })
+    // dados que vão para o banco (update ou insert)
+    const payload = {
+      nome: form.nome,
+      ca: form.ca,
+      validade_ca: form.validade_ca_date,
+      tamanho: form.tamanho,
+      estoque_atual: form.estoque_atual,
+      estoque_minimo: form.estoque_minimo
+    }
 
-    if (error) throw error
+    // atualiza foto se foi alterada
+    if (publicImageUrl) {
+      payload.foto_epi = publicImageUrl
+    }
 
-    alert('EPI cadastrado com sucesso!')
+    // se estiver editando, atualiza o registro existente
+    if (editingId.value) {
+      // se tem ID - atualiza
+
+      const {error} = await supabase
+        .from('epis')
+        .update(payload)
+        .eq('id', editingId.value)
+
+        if (error) throw error
+        alert('EPI atualizado com sucesso!')
+    } else {
+      // se nao tem ID - insere
+
+        const {error} = await supabase
+        .from('epis')
+        .insert(payload)
+
+        if (error) throw error
+        alert('EPI cadastrado com sucesso!')
+    }
+
+
     resetForm()
+    fetchEpis()
   } catch (error) {
     alert('Erro ao cadastrar: ' + error.message)
   } finally {
@@ -315,7 +389,7 @@ const filteredEpis = computed(() => {
         const term = searchQuery.value.toLowerCase()
         result = result.filter(epi =>
             epi.nome.toLowerCase().includes(term) ||
-            (epi.numero_ca && epi.numero_ca.toString().includes(term))
+            (epi.ca && epi.ca.toString().includes(term))
         )
     }
 
@@ -324,10 +398,10 @@ const filteredEpis = computed(() => {
 
     switch (activeFilter.value){
         case 'ok':
-            result = result.filter(epi => epi.estoque_atual > estoque_minimo)
+            result = result.filter(epi => epi.estoque_atual > epi.estoque_minimo)
             break
         case 'baixo':
-            result = result.filter(epi => epi.estoque_atual <= estoque_minimo)
+            result = result.filter(epi => epi.estoque_atual <= epi.estoque_minimo)
             break
         case 'vencendo':
             result = result.filter(epi => {
@@ -951,5 +1025,45 @@ input::placeholder {
   .form-panel {
     order: -1;
   }
+}
+
+/* ─── Botões de Ação do Card ──────────────────── */
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e0e6eb;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.action-btn.edit {
+  background: #f8f9fb;
+  color: #2c3e50;
+  border-color: #dce2e8;
+}
+
+.action-btn.edit:hover {
+  background: #eef2f5;
+  border-color: #c8d0d8;
+}
+
+.action-btn.delete {
+  background: rgba(231, 76, 60, 0.05);
+  color: #e74c3c;
+}
+
+.action-btn.delete:hover {
+  background: rgba(231, 76, 60, 0.1);
 }
 </style>
