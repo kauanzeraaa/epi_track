@@ -124,7 +124,7 @@
               <div class="stat-icon blue"><img src="../assets/cards/economy.png" alt="Conformidade" /></div>
               <span class="stat-chip positive">OK</span>
             </div>
-            <p class="stat-value">100%</p>
+            <p class="stat-value">{{ conformidadeNR6}}</p>
             <p class="stat-label">Conformidade NR-6</p>
           </div>
         </div>
@@ -294,6 +294,27 @@ const trocasProximas = computed(() => {
     return dataTroca <= trintaDias
   }).length
 })
+
+// variavel para armazenar a conformidade nr-6
+const conformidadeNR6 = computed(() => {
+  if(meusEpisAtivos.value === 0) return '100%'
+
+  const hoje = new Date()
+
+  const episVencidos = entregas.value.filter(entrega => {
+    if (!entrega.data_troca || !entrega.data_devolucao) return false
+
+    return new Date(entrega.data_troca) < hoje
+  }).length
+
+  if (episVencidos === 0) return '100%'
+
+  // calcula a porcentagem (ativos - vencidos) / ativos * 100
+  const taxa = ((meusEpisAtivos.value - episVencidos) / meusEpisAtivos.value) * 100
+  return `${Math.round(taxa)}%`
+})
+
+
 
 </script>
 
