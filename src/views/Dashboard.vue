@@ -28,7 +28,7 @@
               <div class="stat-icon blue"><img src="../assets/cards/inventory.png" alt="Estoque" /></div>
               <span class="stat-chip neutral">Itens</span>
             </div>
-            <p class="stat-value">1.245</p>
+            <p class="stat-value">{{ totalItens }}</p>
             <p class="stat-label">Total em Estoque</p>
           </div>
         </div>
@@ -40,7 +40,7 @@
               <div class="stat-icon orange"><img src="../assets/cards/alert.png" alt="Alerta" /></div>
               <span class="stat-chip warning">Atenção</span>
             </div>
-            <p class="stat-value">12</p>
+            <p class="stat-value">{{ estoqueBaixo }}</p>
             <p class="stat-label">Estoque Baixo</p>
           </div>
         </div>
@@ -52,7 +52,7 @@
               <div class="stat-icon red"><img src="../assets/cards/check-shield.png" alt="CA" /></div>
               <span class="stat-chip danger">Urgente</span>
             </div>
-            <p class="stat-value">3</p>
+            <p class="stat-value">{{ caVencendo }}</p>
             <p class="stat-label">CA Vencendo</p>
           </div>
         </div>
@@ -151,10 +151,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { useAuthStore } from '../composable/useAuthStore'
+import { useSupabase } from '../composable/useSupabase'
+import { ref, reactive, computed, onMounted } from 'vue'
 
 const { userProfile } = useAuthStore()
+const { supabase } = useSupabase()
 
 const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
@@ -181,6 +183,57 @@ const currentDate = computed(() => {
     year: 'numeric',
   })
 })
+
+const epis = ref([])
+const isLoadingList = ref(false)
+
+// FUnção para bucar os EPIs
+const fetchEpis = async () => {
+  isLoadingList.value = true
+
+  try{
+    const { data, error } = await supabase
+      .from('epis')
+      .select('*')
+
+      if (error) throw error
+
+      epis.value = data
+  }catch(error){
+    console.error('Erro ao buscar EPIs:', error)
+  }finally{
+    isLoadingList.value = false
+  }
+}
+
+onMounted(() => {
+    fetchEpis()
+})
+
+// variavel para armazenar o total de epis cadastrados no sistem
+const totalItens = computed(() => epis.value.length)
+
+// variavel para armazenar a quantidade de epis em estoque baixo
+const estoqueBaixo = computed(() => {
+  return epis.value.filter(epi => epi.estoque_atual <= epi.estoque_minimo).length
+})
+
+// variavel para armazenar os epis com CA a vencer (30 dias)
+const caVencendo = computed(() => {
+  const hoje = new Date()
+  // variavel para armazenar a data atual + 30 dias (para calcular os EPIs com CA vencendo em breve)
+  const trintaDias = new Date(hoje.getTime() + (30 * 24 * 60 * 60 * 1000))
+
+  return epis.value.filter(epi => {
+    if (!epi.validade_ca) return false
+    const dataValidade = new Date(epi.validade_ca)
+    return dataValidade <= trintaDias
+  }).length
+})
+
+
+
+
 </script>
 
 <style scoped>
