@@ -9,11 +9,11 @@
       <div class="header-chips">
         <span class="chip blue">
           <img src="../assets/cards/inventory.png" alt="" />
-          0 itens cadastrados
+          {{ epis.length }} itens cadastrados
         </span>
         <span class="chip orange">
           <img src="../assets/cards/alert.png" alt="" />
-          0 com estoque baixo
+          {{  epis.filter(epi => epi.estoque_atual <= epi.estoque_minimo).length }} com estoque baixo
         </span>
       </div>
     </header>
@@ -46,14 +46,69 @@
           </div>
         </div>
 
-        <div class="epi-grid" v-if="false">
-          <!-- Populated dynamically in the future -->
+        <div class="epi-grid" v-if="filteredEpis.length > 0">
+          <div v-for="epi in filteredEpis" :key="epi.id" class="epi-card" :title="epi.nome">
+            
+            <div class="epi-image-wrap">
+              <img v-if="epi.foto_epi" :src="epi.foto_epi" :alt="epi.nome" class="epi-photo" />
+              <div v-else class="epi-no-photo">
+                <span class="icon-camera">📷</span>
+                <p>Sem foto</p>
+              </div>
+              
+              <div class="status-badge" :class="epi.estoque_atual <= epi.estoque_minimo ? 'bg-danger' : 'bg-success'">
+                <span class="badge-dot"></span>
+                {{ epi.estoque_atual <= epi.estoque_minimo ? 'Estoque Baixo' : 'Estoque OK' }}
+              </div>
+            </div>
+            
+            <div class="epi-info">
+              <h4 class="epi-title">{{ epi.nome }}</h4>
+              
+              <div class="epi-meta">
+                <div class="meta-item">
+                  <span class="meta-label">CA</span>
+                  <span class="meta-value">{{ epi.ca }}</span>
+                </div>
+                <div class="meta-divider"></div>
+                <div class="meta-item">
+                  <span class="meta-label">Tam</span>
+                  <span class="meta-value">{{ epi.tamanho }}</span>
+                </div>
+              </div>
+              
+              <div class="stock-progress-wrap">
+                <div class="stock-header">
+                  <span class="stock-title">Volume em Estoque</span>
+                  <span class="stock-numbers">
+                    <strong>{{ epi.estoque_atual }}</strong> <span class="text-muted">/ min {{ epi.estoque_minimo }}</span>
+                  </span>
+                </div>
+                
+                <div class="progress-track">
+                  <div 
+                    class="progress-fill"
+                    :class="epi.estoque_atual <= epi.estoque_minimo ? 'fill-danger' : 'fill-success'" 
+                    :style="{ width: Math.min((epi.estoque_atual / Math.max(epi.estoque_minimo * 2, 1)) * 100, 100) + '%' }">
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-actions" v-if="isAdmin">
+                <button @click.stop="editEpi(epi)" class="action-btn edit">Editar</button>
+                <button @click.stop="deleteEpi(epi.id)" class="action-btn delete">Excluir</button>
+              </div>
+
+              
+            </div>
+
+          </div>
         </div>
 
-        <div class="empty-state">
+        <div class="empty-state" v-if="filteredEpis.length === 0 && !isLoadingList">
           <img src="../assets/cards/inventory.png" alt="" class="empty-icon" />
-          <p>Nenhum EPI cadastrado ainda.</p>
-          <span>Use o formulário ao lado para adicionar o primeiro equipamento.</span>
+          <p>Nenhum EPI encontrado.</p>
+          <span>Use o formulário ao lado para adicionar equipamentos ou mude os filtros de busca.</span>
         </div>
 
       </section>
@@ -91,7 +146,7 @@
             <div class="input-row">
               <div class="input-group">
                 <label>Número do CA</label>
-                <input v-model="form.validade_ca" type="text" placeholder="Ex: 12345" required />
+                <input v-model="form.ca" type="text" placeholder="Ex: 12345" required />
               </div>
               <div class="input-group">
                 <label>Validade do CA</label>
@@ -128,7 +183,7 @@
             <button type="button" class="btn-secondary" @click="resetForm">Limpar</button>
             <button type="submit" class="btn-primary" :disabled="isSaving">
               <span v-if="isSaving" class="btn-loading"></span>
-              {{ isSaving ? 'Salvando...' : 'Cadastrar EPI' }}
+              {{ isSaving ? 'Salvando...' : (editingId ? 'Salvar Alterações' : 'Cadastrar EPI') }}
             </button>
           </div>
 
@@ -142,14 +197,21 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useSupabase } from '../composable/useSupabase'
+import { useAuthStore } from '../composable/useAuthStore'
 
 const { supabase } = useSupabase()
+const { userProfile } = useAuthStore()
+
+const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
 const isSaving = ref(false)
 const imageFile = ref(null)
 const imagePreview = ref(null)
 const searchQuery = ref('')
 const activeFilter = ref('todos')
+
+// ID do EPI sendo editado
+const editingId = ref(null)
 
 const epis = ref([])
 const isLoadingList = ref(true)
@@ -158,7 +220,7 @@ const filters = [
   { label: 'Todos', value: 'todos' },
   { label: 'Estoque OK', value: 'ok' },
   { label: 'Estoque Baixo', value: 'baixo' },
-  { label: 'CA Vencendo', value: 'vencendo' },
+  { label: 'CA Vencendo (30 dias)', value: 'vencendo' },
 ]
 
 // apresenta os EPIs na tela
@@ -186,7 +248,7 @@ onMounted(() => {
 
 const form = reactive({
   nome: '',
-  validade_ca: '',
+  ca: '',
   tamanho: 'M',
   estoque_atual: 0,
   estoque_minimo: 5,
@@ -204,7 +266,7 @@ const handleFileChange = (event) => {
 const resetForm = () => {
   Object.assign(form, {
     nome: '',
-    validade_ca: '',
+    ca: '',
     tamanho: 'M',
     estoque_atual: 0,
     estoque_minimo: 5,
@@ -212,6 +274,42 @@ const resetForm = () => {
   })
   imageFile.value = null
   imagePreview.value = null
+  editingId.value = null
+}
+
+// função para carregar dados do formulário
+const editEpi = (epi) => {
+  editingId.value = epi.id
+  form.nome = epi.nome
+  form.ca = epi.ca
+  form.tamanho = epi.tamanho
+  form.estoque_atual = epi.estoque_atual
+  form.estoque_minimo = epi.estoque_minimo
+  form.validade_ca_date = epi.validade_ca
+  imagePreview.value = epi.foto_epi
+
+  // rola a tela para o topo para o usuario ver o formulario
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// função para deletar epi
+const deleteEpi = async (id) => {
+  if(!confirm('Tem certeza que deseja excluir este EPI?')) return
+
+  try {
+    const { error } = await supabase
+      .from('epis')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+    alert("EPI excluído com sucesso!")
+
+    // atualiza lista de epis
+    fetchEpis()
+  } catch(error) {
+    console.error('Erro ao excluir EPI:', error.message)
+  }
 }
 
 const handleSubmit = async () => {
@@ -226,30 +324,57 @@ const handleSubmit = async () => {
       const filePath = `epi_photos/${fileName}`
 
       const { error: uploadError } = await supabase.storage
-        .from('epis')
+        .from('epi_imagens')
         .upload(filePath, imageFile.value)
 
       if (uploadError) throw uploadError
 
-      const { data: urlData } = supabase.storage.from('epis').getPublicUrl(filePath)
+      const { data: urlData } = supabase.storage
+        .from('epi_imagens')
+        .getPublicUrl(filePath)
       publicImageUrl = urlData.publicUrl
     }
 
-    const { error } = await supabase
-      .from('epis')
-      .insert({
-        nome: form.nome,
-        tamanho: form.tamanho,
-        estoque_atual: form.estoque_atual,
-        estoque_minimo: form.estoque_minimo,
-        validade_ca: form.validade_ca,
-        foto_epi: publicImageUrl
-      })
+    // dados que vão para o banco (update ou insert)
+    const payload = {
+      nome: form.nome,
+      ca: form.ca,
+      validade_ca: form.validade_ca_date,
+      tamanho: form.tamanho,
+      estoque_atual: form.estoque_atual,
+      estoque_minimo: form.estoque_minimo
+    }
 
-    if (error) throw error
+    // atualiza foto se foi alterada
+    if (publicImageUrl) {
+      payload.foto_epi = publicImageUrl
+    }
 
-    alert('EPI cadastrado com sucesso!')
+    // se estiver editando, atualiza o registro existente
+    if (editingId.value) {
+      // se tem ID - atualiza
+
+      const {error} = await supabase
+        .from('epis')
+        .update(payload)
+        .eq('id', editingId.value)
+
+        if (error) throw error
+        alert('EPI atualizado com sucesso!')
+    } else {
+      // se nao tem ID - insere
+
+        const {error} = await supabase
+        .from('epis')
+        .insert(payload)
+
+        if (error) throw error
+        alert('EPI cadastrado com sucesso!')
+    }
+
+
     resetForm()
+    fetchEpis()
   } catch (error) {
     alert('Erro ao cadastrar: ' + error.message)
   } finally {
@@ -264,7 +389,7 @@ const filteredEpis = computed(() => {
         const term = searchQuery.value.toLowerCase()
         result = result.filter(epi =>
             epi.nome.toLowerCase().includes(term) ||
-            (epi.numero_ca && epi.numero_ca.toString().includes(term))
+            (epi.ca && epi.ca.toString().includes(term))
         )
     }
 
@@ -273,10 +398,10 @@ const filteredEpis = computed(() => {
 
     switch (activeFilter.value){
         case 'ok':
-            result = result.filter(epi => epi.estoque_atual > estoque_minimo)
+            result = result.filter(epi => epi.estoque_atual > epi.estoque_minimo)
             break
         case 'baixo':
-            result = result.filter(epi => epi.estoque_atual <= estoque_minimo)
+            result = result.filter(epi => epi.estoque_atual <= epi.estoque_minimo)
             break
         case 'vencendo':
             result = result.filter(epi => {
@@ -684,6 +809,203 @@ input::placeholder {
   flex-shrink: 0;
 }
 
+/* ─── Grid Principal ──────────────────────────── */
+.epi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  padding: 0 4px 24px 4px; /* Pequeno padding lateral para as sombras não cortarem */
+}
+
+/* ─── O Card ──────────────────────────────────── */
+.epi-card {
+  background: #ffffff;
+  border: 1px solid #eef2f5;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 12px rgba(136, 150, 163, 0.08);
+  cursor: pointer;
+}
+
+.epi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(136, 150, 163, 0.15);
+  border-color: #dce2e8;
+}
+
+/* ─── Imagem ──────────────────────────────────── */
+.epi-image-wrap {
+  position: relative;
+  height: 180px;
+  width: 100%;
+  background: #f8f9fb;
+  border-bottom: 1px solid #eef2f5;
+  overflow: hidden;
+}
+
+.epi-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.epi-card:hover .epi-photo {
+  transform: scale(0.95);
+}
+
+.epi-no-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #a0aab4;
+}
+
+.icon-camera {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* ─── Badge Flutuante ─────────────────────────── */
+.status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 2s infinite;
+}
+
+.bg-success { background: rgba(46, 204, 113, 0.9); color: #fff; }
+.bg-danger { background: rgba(231, 76, 60, 0.9); color: #fff; }
+
+/* ─── Informações do EPI ──────────────────────── */
+.epi-info {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.epi-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a2533;
+  margin: 0 0 16px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.epi-meta {
+  display: flex;
+  align-items: center;
+  background: #f8f9fb;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #8896a3;
+  font-weight: 700;
+}
+
+.meta-value {
+  font-size: 13px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.meta-divider {
+  width: 1px;
+  height: 24px;
+  background: #dce2e8;
+  margin: 0 16px;
+}
+
+/* ─── Barra de Progresso ──────────────────────── */
+.stock-progress-wrap {
+  margin-top: auto;
+}
+
+.stock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+
+.stock-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5a6a78;
+}
+
+.stock-numbers {
+  font-size: 14px;
+  color: #1a2533;
+}
+
+.text-muted {
+  font-size: 11px;
+  color: #a0aab4;
+  font-weight: 500;
+}
+
+.progress-track {
+  height: 8px;
+  background: #eef2f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.fill-success { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+.fill-danger { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+
+/* ─── Animações ───────────────────────────────── */
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
 /* ─── Animações ───────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
@@ -694,7 +1016,7 @@ input::placeholder {
   to { transform: rotate(360deg); }
 }
 
-/* ─── Responsivo ──────────────────────────────── */
+/* ─── Responsividade ──────────────────────────────── */
 @media (max-width: 960px) {
   .catalog-layout {
     grid-template-columns: 1fr;
@@ -703,5 +1025,45 @@ input::placeholder {
   .form-panel {
     order: -1;
   }
+}
+
+/* ─── Botões de Ação do Card ──────────────────── */
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e0e6eb;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.action-btn.edit {
+  background: #f8f9fb;
+  color: #2c3e50;
+  border-color: #dce2e8;
+}
+
+.action-btn.edit:hover {
+  background: #eef2f5;
+  border-color: #c8d0d8;
+}
+
+.action-btn.delete {
+  background: rgba(231, 76, 60, 0.05);
+  color: #e74c3c;
+}
+
+.action-btn.delete:hover {
+  background: rgba(231, 76, 60, 0.1);
 }
 </style>
