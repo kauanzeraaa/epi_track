@@ -64,8 +64,8 @@
               <div class="stat-icon green"><img src="../assets/cards/deliver.png" alt="Entregas" /></div>
               <span class="stat-chip positive">Hoje</span>
             </div>
-            <p class="stat-value">8</p>
-            <p class="stat-label">Entregas Realizadas</p>
+            <p class="stat-value">{{  entregasHoje }}</p>
+            <p class="stat-label">Entregas Realizadas Hoje</p>
           </div>
         </div>
 
@@ -100,7 +100,7 @@
               <div class="stat-icon green"><img src="../assets/cards/check-shield.png" alt="EPIs" /></div>
               <span class="stat-chip positive">Ativo</span>
             </div>
-            <p class="stat-value">4</p>
+            <p class="stat-value">{{ meusEpisAtivos }}</p>
             <p class="stat-label">Meus EPIs Ativos</p>
           </div>
         </div>
@@ -112,7 +112,7 @@
               <div class="stat-icon orange"><img src="../assets/cards/alert.png" alt="Trocas" /></div>
               <span class="stat-chip warning">Atenção</span>
             </div>
-            <p class="stat-value">1</p>
+            <p class="stat-value">{{ trocasProximas }}</p>
             <p class="stat-label">Trocas Próximas</p>
           </div>
         </div>
@@ -151,6 +151,11 @@
 </template>
 
 <script setup>
+
+// ===========================
+// Visão Geral do Sistema
+// ===========================
+
 import { useAuthStore } from '../composable/useAuthStore'
 import { useSupabase } from '../composable/useSupabase'
 import { ref, reactive, computed, onMounted } from 'vue'
@@ -187,6 +192,10 @@ const currentDate = computed(() => {
 const epis = ref([])
 const isLoadingList = ref(false)
 
+// ===========================
+// Visão do Administrador
+// ===========================
+
 // FUnção para bucar os EPIs
 const fetchEpis = async () => {
   isLoadingList.value = true
@@ -208,6 +217,7 @@ const fetchEpis = async () => {
 
 onMounted(() => {
     fetchEpis()
+    fetchEntregas()
 })
 
 // variavel para armazenar o total de epis cadastrados no sistem
@@ -231,8 +241,59 @@ const caVencendo = computed(() => {
   }).length
 })
 
+// armazena as entregas
+const entregas = ref([])
 
+// função select para retornar todas as entregas
+const fetchEntregas = async () => {
+  try{
+    const { data, error } = await supabase
+      .from('entrega_epis')
+      .select('*')
+  
+    if (error) throw error
+  
+    entregas.value = data
+  } catch(error){
+    console.error('Erro ao buscar entregas:', error)
+  }
+}
 
+// calcula quantas entregas foram feitas HOJE
+const entregasHoje = computed (() => {
+  const dataHoje = new Date().toISOString().split('T')[0] // formata a data para YYYY-MM-DD
+
+  return entregas.value.filter(entrega => {
+    if (!entrega.created_at) return false
+
+    const dataDaEntrega = entrega.created_at.split('T')[0] // formata a data da entrega para YYYY-MM-DD
+
+    return dataDaEntrega === dataHoje
+  }).length
+})
+
+// ===========================
+// Visão do Funcionário
+// ===========================
+
+// variavel para armazenar os EPIs ativos do funcionario (ainda nao devolvidos)
+const meusEpisAtivos = computed (() => {
+  return entregas.value.filter(entregas => !entregas.data_devolucao).length
+})
+
+// variavel para armazenar a quantidade de EPIs que precisam ser trocados em 30 dias
+const trocasProximas = computed(() => {
+  const hoje = new Date()
+  const trintaDias = new Date(hoje.getTime() + (30 * 24 * 60 * 60 * 1000))
+
+  return entregas.value.filter(entrega => {
+    // se nao tem nenhuma data de devolução estipulada, ignora
+    if (!entrega.data_troca || !entrega.data_devolucao) return false
+
+    const dataTroca = new Date(entrega.data_troca)
+    return dataTroca <= trintaDias
+  }).length
+})
 
 </script>
 
