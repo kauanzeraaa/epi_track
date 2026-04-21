@@ -94,7 +94,7 @@
                 
                 <div class="card-actions" v-if="isAdmin && !entrega.data_devolucao">
                   <button @click.stop="registrarDevolucao(entrega)" class="btn-return">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+                    <img src="../assets/return.png" alt="Registrar Devolução" style="width:13px; height:13px; opacity: 0.7 ;">
                     Registrar Devolução
                   </button>
                 </div>
