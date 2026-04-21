@@ -321,7 +321,11 @@ const emUsoCount = computed(() => entregasRecentes.value.filter(e => !e.data_dev
 
 const filteredEntregas = computed(() => {
   if (activeTab.value === 'em_uso') return entregasRecentes.value.filter(e => !e.data_devolucao)
-  return entregasRecentes.value
+  return [...entregasRecentes.value].sort((a, b) => {
+    if (!a.data_devolucao && b.data_devolucao) return -1
+    if (a.data_devolucao && !b.data_devolucao) return 1
+    return 0
+  })
 })
 
 const episDisponiveis = computed(() => epis.value.filter(e => e.estoque_atual > 0))
@@ -360,7 +364,7 @@ const fetchMovimentacoes = async () => {
       .from('entrega_epis')
       .select(`*, usuarios (nome), epis (nome)`)
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(20) // limitando a 20 linhas buscadas
 
     if (error) throw error
     entregasRecentes.value = data
