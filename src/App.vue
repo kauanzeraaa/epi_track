@@ -7,11 +7,11 @@ const { supabase } = useSupabase()
 const { fetchUserProfile } = useAuthStore()
 
 onMounted(() => {
-  // Esse "espião" do Supabase dispara assim que o app carrega 
+  // dispara assim que o app carrega 
   // ou quando o usuário faz login/logout
   supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
-      // Se a pessoa atualizou a página mas ainda tem sessão, busca os dados!
+      // Se a pessoa atualizou a página mas ainda tem sessão, busca os dados
       fetchUserProfile()
     }
   })
