@@ -191,6 +191,48 @@
       </aside>
 
     </div>
+
+    <!-- ── Toasts ── -->
+    <teleport to="body">
+      <div class="toast-container">
+        <transition-group name="toast">
+          <div v-for="t in toasts" :key="t.id" class="toast" :class="t.type">
+            <span class="toast-icon">
+              <svg v-if="t.type === 'success'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              <svg v-else-if="t.type === 'error'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <span class="toast-message">{{ t.message }}</span>
+            <button class="toast-close" @click="dismissToast(t.id)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </transition-group>
+      </div>
+
+      <!-- ── Modal de confirmação ── -->
+      <transition name="modal">
+        <div v-if="modal.visible" class="modal-backdrop" @click.self="modal.resolve(false); modal.visible = false">
+          <div class="modal-card">
+            <div class="modal-icon-wrap" :class="modal.iconType">
+              <svg v-if="modal.iconType === 'danger'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <h3 class="modal-title">{{ modal.title }}</h3>
+            <p class="modal-message">{{ modal.message }}</p>
+            <div class="modal-actions">
+              <button class="modal-btn cancel" @click="modal.resolve(false); modal.visible = false">
+                {{ modal.cancelText }}
+              </button>
+              <button class="modal-btn confirm" :class="modal.iconType" @click="modal.resolve(true); modal.visible = false">
+                {{ modal.confirmText }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
+
   </div>
 </template>
 
@@ -205,6 +247,38 @@ const { userProfile } = useAuthStore()
 const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
 const isSaving = ref(false)
+
+// ── Toast ──────────────────────────────────────
+const toasts = ref([])
+let toastId = 0
+
+const showToast = (message, type = 'success') => {
+  const id = ++toastId
+  toasts.value.push({ id, message, type })
+  setTimeout(() => dismissToast(id), 4500)
+}
+
+const dismissToast = (id) => {
+  toasts.value = toasts.value.filter(t => t.id !== id)
+}
+
+// ── Modal ──────────────────────────────────────
+const modal = reactive({
+  visible: false,
+  title: '',
+  message: '',
+  confirmText: 'Confirmar',
+  cancelText: 'Cancelar',
+  iconType: 'warning',
+  resolve: null,
+})
+
+const showConfirm = (title, message, { confirmText = 'Confirmar', cancelText = 'Cancelar', iconType = 'warning' } = {}) => {
+  return new Promise((resolve) => {
+    Object.assign(modal, { visible: true, title, message, confirmText, cancelText, iconType, resolve })
+  })
+}
+
 const imageFile = ref(null)
 const imagePreview = ref(null)
 const searchQuery = ref('')
@@ -294,21 +368,20 @@ const editEpi = (epi) => {
 
 // função para deletar epi
 const deleteEpi = async (id) => {
-  if(!confirm('Tem certeza que deseja excluir este EPI?')) return
+  const confirmou = await showConfirm(
+    'Excluir equipamento',
+    'Esta ação é permanente e não pode ser desfeita. Deseja continuar?',
+    { confirmText: 'Sim, excluir', cancelText: 'Cancelar', iconType: 'danger' }
+  )
+  if (!confirmou) return
 
   try {
-    const { error } = await supabase
-      .from('epis')
-      .delete()
-      .eq('id', id)
-
+    const { error } = await supabase.from('epis').delete().eq('id', id)
     if (error) throw error
-    alert("EPI excluído com sucesso!")
-
-    // atualiza lista de epis
+    showToast('EPI excluído com sucesso.')
     fetchEpis()
-  } catch(error) {
-    console.error('Erro ao excluir EPI:', error.message)
+  } catch (error) {
+    showToast('Erro ao excluir: ' + error.message, 'error')
   }
 }
 
@@ -360,23 +433,17 @@ const handleSubmit = async () => {
         .eq('id', editingId.value)
 
         if (error) throw error
-        alert('EPI atualizado com sucesso!')
+        showToast('EPI atualizado com sucesso!')
     } else {
-      // se nao tem ID - insere
-
-        const {error} = await supabase
-        .from('epis')
-        .insert(payload)
-
+        const {error} = await supabase.from('epis').insert(payload)
         if (error) throw error
-        alert('EPI cadastrado com sucesso!')
+        showToast('EPI cadastrado com sucesso!')
     }
-
 
     resetForm()
     fetchEpis()
   } catch (error) {
-    alert('Erro ao cadastrar: ' + error.message)
+    showToast('Erro ao salvar: ' + error.message, 'error')
   } finally {
     isSaving.value = false
   }
@@ -1065,5 +1132,152 @@ input::placeholder {
 
 .action-btn.delete:hover {
   background: rgba(231, 76, 60, 0.1);
+}
+
+/* ─── Toasts ──────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  min-width: 280px;
+  max-width: 380px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  pointer-events: all;
+  font-size: 13px;
+  font-weight: 600;
+  background: #fff;
+}
+
+.toast.success { border-left: 4px solid #2ecc71; color: #1a2533; }
+.toast.error   { border-left: 4px solid #e74c3c; color: #1a2533; }
+.toast.warning { border-left: 4px solid #f39c12; color: #1a2533; }
+
+.toast-icon { display: flex; align-items: center; flex-shrink: 0; }
+.toast.success .toast-icon { color: #2ecc71; }
+.toast.error   .toast-icon { color: #e74c3c; }
+.toast.warning .toast-icon { color: #f39c12; }
+
+.toast-message { flex: 1; line-height: 1.4; }
+
+.toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a0aab4;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.toast-close:hover { color: #5a6a78; }
+
+/* ─── Modal ───────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 36, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 28px 28px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.modal-icon-wrap.warning { background: rgba(243,156,18,0.12); color: #f39c12; }
+.modal-icon-wrap.danger  { background: rgba(231,76,60,0.10);  color: #e74c3c; }
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a2533;
+  margin: 0;
+}
+
+.modal-message {
+  font-size: 14px;
+  color: #5a6a78;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  border: none;
+}
+
+.modal-btn.cancel { background: #f4f6f8; color: #5a6a78; }
+.modal-btn.cancel:hover { background: #e8ecf0; }
+
+.modal-btn.confirm.warning { background: #f39c12; color: #fff; }
+.modal-btn.confirm.warning:hover { background: #d68910; }
+
+.modal-btn.confirm.danger { background: #e74c3c; color: #fff; }
+.modal-btn.confirm.danger:hover { background: #c0392b; }
+
+/* ─── Transições ──────────────────────────────── */
+.toast-enter-active, .toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.toast-enter-from, .toast-leave-to {
+  opacity: 0;
+  transform: translateX(40px) scale(0.95);
+}
+
+.modal-enter-active, .modal-leave-active { transition: all 0.22s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from .modal-card, .modal-leave-to .modal-card {
+  transform: scale(0.95) translateY(10px);
 }
 </style>
