@@ -19,13 +19,16 @@ export function useAuthStore() {
             if (user){
                 currentUser.value = user
 
-                const { data, error } = await supabase
+                const { data, error: userError } = await supabase
                     .from('vw_usuarios_completos')
                     .select('*')
                     .eq('id', user.id)
                     .single()
-                
-                    if (data){
+
+                    if (userError){
+                        console.log('Erro ao buscar perfil do usuário:', userError.message)
+                        userProfile.value = null
+                    }else{
                         userProfile.value = data
                     }
             }else{
