@@ -47,47 +47,83 @@ const { supabase } = useSupabase();
 // variavel para armazenar se usuario é administrador ou nao
 const isAdmin = computed(() => userProfile.value?.perfil.acesso === 'Administrador')
 
+const isLoading = ref(true)
+const usuarios = ref([])
+
 // variavel para armazenar a quantidade de usuarios cadastradas
 const quantidadeUsuarios = computed(() => userProfile.value.length)
-const isLoading = ref(true)
-
-const isLoadingDados = ref(true)
-const usuarios = ref([])
 
 // formulario reativo
 const form = reactive({
     id: '',
     nome: '',
     celular: '',
-    email: '',
-    perfil_acesso: '',
-    cargo: '',
-    departamento: '',
-    matricula: ''
+    tipo_usuario: '',
+    perfil_acesso: 'Comum',
+    statu: 'Ativo',
+
+    // Funcionario
+    func_matricula: '',
+    func_cargo: '',
+    func_departamento: '',
+    
+    // Aluno
+    aluno_matricula: '',
+    aluno_curso: '',
+    aluno_turma: '',
+
+    // Visitante
+    vis_cpf: '',
+    vis_motivo: '',
+    vis_empresaOrigem: '',
 })
 
-const fetchData = async () => {
-    isLoadingDados.value = true
+const fetchUsuarios = async () => {
+    isLoading.value = true
 
-    try {
-        const { data: userData } = await supabase
+    try{
+        let query = supabase
             .from('usuarios')
-            .select('id, nome')
-            .order('nome')
+            .select(`
+                *,
+                funcionarios(matricula, cargo, departamento),
+                aluno(matricula, curso, turma),
+                visitante(cpf, motivo_visita, empresa_origem)
+            `)
 
-        if (userData) {
-            usuarios.value = userData
+        if (!isAdmin.value){
+            query = query.eq('id', userProfile.value.id)
         }
 
-    } catch (error) {
-        console.log('Erro ao carregar dados:', error)
-    } finally {
-        isLoadingDados.value = false
+        const { data, error } = await query.order('nome')
+
+        if (error) throw error
+
+        usuarios.value = data
+
+        if(!isAdmin.value && data.length > 0){
+            selecionarUsuario(data[0])
+        }
+
+    }catch(error){
+        console.log('Erro ao buscar usuários:', error.message)
+    }finally{
+        isLoading.value = false
     }
 }
 
+const limparForm = () => {
+    Object.keys(form).forEach(key => form[key] = '')
+    form.tipo_usuario = 'Funcionario'
+    form.perfil_acesso = 'Comum'
+    form.statu = 'Ativo'
+}
 
-onMounted(() => fetchData())
+const selecionarUsuario = (usuario) => {
+
+}
+
+onMounted(() => fetchUsuarios())
 
 </script>
 
