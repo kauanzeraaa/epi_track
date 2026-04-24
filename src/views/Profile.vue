@@ -182,9 +182,9 @@ const { userProfile } = useAuthStore();
 const { supabase } = useSupabase();
 
 // variavel para armazenar se usuario é administrador ou nao
-const isAdmin = computed(() => userProfile.value?.perfil.acesso === 'Administrador')
+const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
-const isSaving = ref(true)
+const isSaving = ref(false)
 const isLoading = ref(true)
 const usuarios = ref([])
 
@@ -198,7 +198,7 @@ const form = reactive({
     celular: '',
     tipo_usuario: '',
     perfil_acesso: 'Comum',
-    statu: 'Ativo',
+    status: 'Ativo',
 
     // Funcionario
     func_matricula: '',
@@ -226,8 +226,8 @@ const fetchUsuarios = async () => {
             .select(`
                 *,
                 funcionarios(matricula, cargo, departamento),
-                aluno(matricula, curso, turma),
-                visitante(cpf, motivo_visita, empresa_origem)
+                alunos(matricula, curso, turma),
+                visitantes(cpf, motivo_visita, empresa_origem)
             `)
 
         if (!isAdmin.value) {
@@ -255,7 +255,7 @@ const limparForm = () => {
     Object.keys(form).forEach(key => form[key] = '')
     form.tipo_usuario = 'Funcionario'
     form.perfil_acesso = 'Comum'
-    form.statu = 'Ativo'
+    form.status = 'Ativo'
 }
 
 // salva os dados dos usuarios no formulario
@@ -268,25 +268,25 @@ const selecionarUsuario = (usuario) => {
     form.celular = usuario.celular
     form.tipo_usuario = usuario.tipo_usuario
     form.perfil_acesso = usuario.perfil_acesso
-    form.ativo = usuario.ativo
+    form.status = usuario.status
 
     if (usuario.tipo_usuario === 'Funcionario' && usuario.funcionarios) {
         const f = Array.isArray(usuario.funcionarios) ? usuario.funcionarios[0] : usuario.funcionarios
-        form.matricula = f?.matricula || ''
-        form.cargo = f?.cargo || ''
-        form.departamento = f?.departamento || ''
+        form.matricula = f?.matricula || 'Pendente'
+        form.cargo = f?.cargo || 'Não informada'
+        form.departamento = f?.departamento || 'Não informada'
     }
     else if (usuario.tipo_usuario === 'Aluno' && usuario.alunos) {
         const a = Array.isArray(usuario.alunos) ? usuario.alunos[0] : usuario.alunos
-        form.matricula = a?.matricula || ''
-        form.curso = a?.curso || ''
-        form.turma = a?.turma || ''
+        form.matricula = a?.matricula || 'Pendente'
+        form.curso = a?.curso || 'Não informada'
+        form.turma = a?.turma || 'Não informada'
     }
     else if (usuario.tipo_usuario === 'Visitante' && usuario.visitantes) {
         const v = Array.isArray(usuario.visitantes) ? usuario.visitantes[0] : usuario.visitantes
-        form.cpf = v?.cpf || ''
-        form.motivo = v?.motivo || ''
-        form.empresaOrigem = v?.empresaOrigem || ''
+        form.cpf = v?.cpf || 'Pendente'
+        form.motivo = v?.motivo || 'Não informada'
+        form.empresaOrigem = v?.empresaOrigem || 'Não informada'
     }
 }
 
@@ -296,11 +296,64 @@ const salvarUsuario = async () => {
         return
     }
     isSaving.value = true
-        
+
     try {
-        
+        const payloadUsuario = {
+            nome: form.nome,
+            celular: form.celular,
+            tipo_usuario: form.tipo_usuario,
+            ...(isAdmin.value &&{
+                perfil_acesso: form.perfil_acesso,
+                status: form.status
+            })
+        }
+
+        const { error: errorUsuario } = await supabase
+            .from('usuarios')
+            .update(payloadUsuario)
+            .eq('id', form.id)
+
+        if (errorUsuario) throw new Error('Erro ao salvar dados: ' + errorUsuario.message)
+
+        let errorFilha = null
+
+        if(form.tipo_usuario === 'Funcionario') {
+            const { error } = await supabase.from('funcionarios').upsert({
+                id: form.id,
+                matricula: form.matricula,
+                cargo: form.cargo,
+                departamento: form.departamento
+            })
+            errorFilha = error
+        }
+        else if (form. tipo_usuario === 'Aluno'){
+            const { error } = await supabase.from('alunos').upsert({
+                id: form.id,
+                matricula: form.matricula,
+                curso: form.curso,
+                turma: form.turma
+            })
+            errorFilha = error
+        }
+        else if(form.tipo_usuario === 'Visitante'){
+            const { error } = await supabase.from('visitantes').upsert({
+                id: form.id,
+                cpf: form.cpf,
+                motivo_visita: form.motivo_visita,
+                empresa_origem: form.empresa_origem
+            })
+            errorFilha = error
+        }
+
+        if (errorFilha) throw new Error('Erro ao salvar dados específicos: ' + errorFilha.message)
+
+        alert('Perfil atualizado com sucesso!')
+
+        await fetchUsuarios()
+
     } catch (error) {
-        console.error('Erro ao salvar usuário:', error.message)
+        console.error(error)
+        alert(error.message)
     } finally {
         isSaving.value = false
     }
