@@ -1,6 +1,16 @@
 <template>
     <div class="profile-page">
 
+        <transition name="toast-slide">
+            <div v-if="toast.visible" class="toast" :class="toast.type">
+                <div class="toast-icon-wrap">
+                    <svg v-if="toast.type === 'success'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+                <span>{{ toast.message }}</span>
+            </div>
+        </transition>
+
         <header class="page-header">
             <div class="header-text">
                 <h1>{{ isAdmin ? 'Gerenciamento de Usuários' : 'Meu Perfil' }}</h1>
@@ -19,9 +29,17 @@
         <div class="profile-layout" :class="{ 'admin-view': isAdmin, 'user-view': !isAdmin }">
 
             <section class="panel list-panel" v-if="isAdmin">
+                <div class="list-header">
+                    <span class="list-header-title">Usuários</span>
+                    <div class="search-wrap">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input v-model="searchQuery" type="text" placeholder="Buscar usuário..." class="search-input" />
+                    </div>
+                </div>
+
                 <div class="list-body">
                     <div v-if="isLoading" class="skeleton-list">
-                        <div v-for="n in 4" :key="n" class="skeleton-card">
+                        <div v-for="n in 5" :key="n" class="skeleton-card">
                             <div class="skeleton skeleton-icon"></div>
                             <div class="skeleton-lines">
                                 <div class="skeleton skeleton-line long"></div>
@@ -30,8 +48,12 @@
                         </div>
                     </div>
 
+                    <div v-else-if="filteredUsuarios.length === 0" class="list-empty">
+                        <p>Nenhum resultado para "<strong>{{ searchQuery }}</strong>"</p>
+                    </div>
+
                     <div v-else class="user-list">
-                        <div v-for="user in usuarios" :key="user.id" class="user-card"
+                        <div v-for="user in filteredUsuarios" :key="user.id" class="user-card"
                             :class="{ 'active': form.id === user.id }" @click="selecionarUsuario(user)">
                             <div class="user-avatar" :class="user.tipo_usuario.toLowerCase()">
                                 {{ user.nome.charAt(0).toUpperCase() }}
@@ -43,6 +65,7 @@
                                     <span v-if="user.perfil_acesso === 'Administrador'" class="badge-admin">Admin</span>
                                 </div>
                             </div>
+                            <div class="status-dot" :class="user.status === 'Ativo' ? 'dot-active' : 'dot-inactive'" :title="user.status"></div>
                         </div>
                     </div>
                 </div>
@@ -58,11 +81,25 @@
 
                 <form @submit.prevent="salvarUsuario" class="profile-form" v-if="form.id || !isAdmin">
 
+                    <div class="profile-hero">
+                        <div class="hero-avatar" :class="form.tipo_usuario?.toLowerCase()">
+                            {{ form.nome?.charAt(0)?.toUpperCase() || '?' }}
+                        </div>
+                        <div class="hero-meta">
+                            <p class="hero-name">{{ form.nome || '—' }}</p>
+                            <div class="hero-badges">
+                                <span v-if="form.tipo_usuario" class="badge-role">{{ form.tipo_usuario }}</span>
+                                <span v-if="form.perfil_acesso === 'Administrador'" class="badge-admin">Admin</span>
+                                <span v-if="form.status" class="badge-status" :class="form.status === 'Ativo' ? 'status-active' : 'status-inactive'">{{ form.status }}</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <h4 class="section-title">Dados Gerais</h4>
                     <div class="form-section">
                         <div class="input-group">
                             <label>Nome Completo</label>
-                            <input v-model="form.nome" type="text" required :disabled="!isAdmin && form.nome !== ''" />
+                            <input v-model="form.nome" type="text" required :disabled="!isAdmin" />
                         </div>
 
                         <div class="input-row">
@@ -163,35 +200,55 @@
                 </form>
 
                 <div v-else class="empty-state">
-                    <span class="empty-icon">👈</span>
-                    <p>Selecione um usuário na lista</p>
-                    <span>As informações dele aparecerão aqui para edição.</span>
+                    <div class="empty-illustration">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
+                            <circle cx="40" cy="40" r="40" fill="#f0f4f8"/>
+                            <circle cx="40" cy="31" r="13" fill="#d8e2ec"/>
+                            <path d="M14 68c0-14.359 11.641-26 26-26s26 11.641 26 26" stroke="#d8e2ec" stroke-width="4" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <p class="empty-title">Nenhum usuário selecionado</p>
+                    <span class="empty-hint">Clique em um usuário na lista ao lado para visualizar e editar seus dados.</span>
                 </div>
-
             </aside>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import { useAuthStore } from '../composable/useAuthStore';
 import { useSupabase } from '../composable/useSupabase';
 
 const { userProfile } = useAuthStore();
 const { supabase } = useSupabase();
 
-// variavel para armazenar se usuario é administrador ou nao
 const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
 const isSaving = ref(false)
 const isLoading = ref(true)
 const usuarios = ref([])
+const searchQuery = ref('')
 
-// variavel para armazenar a quantidade de usuarios cadastradas
 const quantidadeUsuarios = computed(() => usuarios.value.length)
 
-// formulario reativo
+const filteredUsuarios = computed(() => {
+    if (!searchQuery.value.trim()) return usuarios.value
+    const q = searchQuery.value.toLowerCase()
+    return usuarios.value.filter(u => u.nome.toLowerCase().includes(q))
+})
+
+const toast = reactive({ visible: false, message: '', type: 'success' })
+let toastTimeout = null
+
+const showNotification = (message, type = 'success') => {
+    clearTimeout(toastTimeout)
+    toast.message = message
+    toast.type = type
+    toast.visible = true
+    toastTimeout = setTimeout(() => { toast.visible = false }, 3500)
+}
+
 const form = reactive({
     id: '',
     nome: '',
@@ -199,27 +256,19 @@ const form = reactive({
     tipo_usuario: '',
     perfil_acesso: 'Comum',
     status: 'Ativo',
-
-    // Funcionario
     func_matricula: '',
     func_cargo: '',
     func_departamento: '',
-
-    // Aluno
     aluno_matricula: '',
     aluno_curso: '',
     aluno_turma: '',
-
-    // Visitante
     vis_cpf: '',
     vis_motivo: '',
-    vis_empresaOrigem: '',
+    vis_empresa: '',
 })
 
-// função para buscar os usuarios cadastrados no banco de dados
 const fetchUsuarios = async () => {
     isLoading.value = true
-
     try {
         let query = supabase
             .from('usuarios')
@@ -235,7 +284,6 @@ const fetchUsuarios = async () => {
         }
 
         const { data, error } = await query.order('nome')
-
         if (error) throw error
 
         usuarios.value = data
@@ -243,7 +291,6 @@ const fetchUsuarios = async () => {
         if (!isAdmin.value && data.length > 0) {
             selecionarUsuario(data[0])
         }
-
     } catch (error) {
         console.log('Erro ao buscar usuários:', error.message)
     } finally {
@@ -258,11 +305,8 @@ const limparForm = () => {
     form.status = 'Ativo'
 }
 
-// salva os dados dos usuarios no formulario
 const selecionarUsuario = (usuario) => {
-    // antes, limpa o formulario
     limparForm()
-
     form.id = usuario.id
     form.nome = usuario.nome
     form.celular = usuario.celular
@@ -272,27 +316,25 @@ const selecionarUsuario = (usuario) => {
 
     if (usuario.tipo_usuario === 'Funcionario' && usuario.funcionarios) {
         const f = Array.isArray(usuario.funcionarios) ? usuario.funcionarios[0] : usuario.funcionarios
-        form.matricula = f?.matricula || 'Pendente'
-        form.cargo = f?.cargo || 'Não informada'
-        form.departamento = f?.departamento || 'Não informada'
-    }
-    else if (usuario.tipo_usuario === 'Aluno' && usuario.alunos) {
+        form.func_matricula = f?.matricula || ''
+        form.func_cargo = f?.cargo || ''
+        form.func_departamento = f?.departamento || ''
+    } else if (usuario.tipo_usuario === 'Aluno' && usuario.alunos) {
         const a = Array.isArray(usuario.alunos) ? usuario.alunos[0] : usuario.alunos
-        form.matricula = a?.matricula || 'Pendente'
-        form.curso = a?.curso || 'Não informada'
-        form.turma = a?.turma || 'Não informada'
-    }
-    else if (usuario.tipo_usuario === 'Visitante' && usuario.visitantes) {
+        form.aluno_matricula = a?.matricula || ''
+        form.aluno_curso = a?.curso || ''
+        form.aluno_turma = a?.turma || ''
+    } else if (usuario.tipo_usuario === 'Visitante' && usuario.visitantes) {
         const v = Array.isArray(usuario.visitantes) ? usuario.visitantes[0] : usuario.visitantes
-        form.cpf = v?.cpf || 'Pendente'
-        form.motivo = v?.motivo || 'Não informada'
-        form.empresaOrigem = v?.empresaOrigem || 'Não informada'
+        form.vis_cpf = v?.cpf || ''
+        form.vis_motivo = v?.motivo_visita || ''
+        form.vis_empresa = v?.empresa_origem || ''
     }
 }
 
 const salvarUsuario = async () => {
     if (!form.id) {
-        alert('Nenhum usuário selecionado para salvar.')
+        showNotification('Nenhum usuário selecionado para salvar.', 'error')
         return
     }
     isSaving.value = true
@@ -302,7 +344,7 @@ const salvarUsuario = async () => {
             nome: form.nome,
             celular: form.celular,
             tipo_usuario: form.tipo_usuario,
-            ...(isAdmin.value &&{
+            ...(isAdmin.value && {
                 perfil_acesso: form.perfil_acesso,
                 status: form.status
             })
@@ -317,56 +359,92 @@ const salvarUsuario = async () => {
 
         let errorFilha = null
 
-        if(form.tipo_usuario === 'Funcionario') {
+        if (form.tipo_usuario === 'Funcionario') {
             const { error } = await supabase.from('funcionarios').upsert({
                 id: form.id,
-                matricula: form.matricula,
-                cargo: form.cargo,
-                departamento: form.departamento
+                matricula: form.func_matricula,
+                cargo: form.func_cargo,
+                departamento: form.func_departamento
             })
             errorFilha = error
-        }
-        else if (form. tipo_usuario === 'Aluno'){
+        } else if (form.tipo_usuario === 'Aluno') {
             const { error } = await supabase.from('alunos').upsert({
                 id: form.id,
-                matricula: form.matricula,
-                curso: form.curso,
-                turma: form.turma
+                matricula: form.aluno_matricula,
+                curso: form.aluno_curso,
+                turma: form.aluno_turma
             })
             errorFilha = error
-        }
-        else if(form.tipo_usuario === 'Visitante'){
+        } else if (form.tipo_usuario === 'Visitante') {
             const { error } = await supabase.from('visitantes').upsert({
                 id: form.id,
-                cpf: form.cpf,
-                motivo_visita: form.motivo_visita,
-                empresa_origem: form.empresa_origem
+                cpf: form.vis_cpf,
+                motivo_visita: form.vis_motivo,
+                empresa_origem: form.vis_empresa
             })
             errorFilha = error
         }
 
         if (errorFilha) throw new Error('Erro ao salvar dados específicos: ' + errorFilha.message)
 
-        alert('Perfil atualizado com sucesso!')
-
+        showNotification('Perfil atualizado com sucesso!')
         await fetchUsuarios()
 
     } catch (error) {
         console.error(error)
-        alert(error.message)
+        showNotification(error.message, 'error')
     } finally {
         isSaving.value = false
     }
 }
 
-onMounted(() => fetchUsuarios())
-
+watch(userProfile, (perfil) => {
+    if (perfil) fetchUsuarios()
+}, { immediate: true })
 </script>
 
 <style scoped>
-.profile-page {
-    animation: fadeIn 0.4s ease-out;
+
+/* Toast  */
+.toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a2533;
+    background: #fff;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    min-width: 240px;
+    max-width: 360px;
 }
+
+.toast.success { border-left: 4px solid #27ae60; }
+.toast.error   { border-left: 4px solid #e74c3c; }
+
+.toast-icon-wrap {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.toast-icon-wrap svg { width: 100%; height: 100%; }
+.toast.success .toast-icon-wrap { color: #27ae60; }
+.toast.error   .toast-icon-wrap { color: #e74c3c; }
+
+.toast-slide-enter-active,
+.toast-slide-leave-active { transition: all 0.3s ease; }
+.toast-slide-enter-from,
+.toast-slide-leave-to { opacity: 0; transform: translateX(110%); }
+
+/*  Page */
+.profile-page { animation: fadeIn 0.4s ease-out; }
 
 .page-header {
     display: flex;
@@ -388,11 +466,7 @@ onMounted(() => fetchUsuarios())
     color: #8896a3;
 }
 
-.header-chips {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+.header-chips { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .chip {
     display: flex;
@@ -404,26 +478,13 @@ onMounted(() => fetchUsuarios())
     font-weight: 600;
 }
 
-.chip img {
-    width: 15px;
-    height: 15px;
-    object-fit: contain;
-}
+.chip img { width: 15px; height: 15px; object-fit: contain; }
+.chip.blue { background: rgba(52, 152, 219, 0.1); color: #2176ae; }
 
-.chip.blue {
-    background: rgba(52, 152, 219, 0.1);
-    color: #2176ae;
-}
+/*  Layout */
+.profile-layout { display: grid; gap: 24px; align-items: start; }
 
-.profile-layout {
-    display: grid;
-    gap: 24px;
-    align-items: start;
-}
-
-.profile-layout.admin-view {
-    grid-template-columns: 320px 1fr;
-}
+.profile-layout.admin-view { grid-template-columns: 300px 1fr; }
 
 .profile-layout.user-view {
     grid-template-columns: 1fr;
@@ -439,24 +500,78 @@ onMounted(() => fetchUsuarios())
     overflow: hidden;
 }
 
-/* Lista da Esquerda */
-.list-body {
-    max-height: 70vh;
-    overflow-y: auto;
-}
-
-.user-list {
-    padding: 16px;
+/*  List Panel */
+.list-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f3f6;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+}
+
+.list-header-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #a0aab4;
+}
+
+.search-wrap { position: relative; }
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    color: #a0aab4;
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 9px 12px 9px 32px;
+    border: 1.5px solid #e0e6eb;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #f9fbfc;
+    color: #1a2533;
+    box-sizing: border-box;
+    transition: 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3498db;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.list-body { max-height: 70vh; overflow-y: auto; }
+
+.list-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: #a0aab4;
+    font-size: 13px;
+}
+
+.list-empty strong { color: #4a5a6a; }
+
+.user-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .user-card {
     display: flex;
     gap: 12px;
     align-items: center;
-    padding: 12px;
+    padding: 10px 12px;
     background: #f8f9fb;
     border: 1px solid transparent;
     border-radius: 10px;
@@ -476,37 +591,42 @@ onMounted(() => fetchUsuarios())
     box-shadow: 0 2px 12px rgba(52, 152, 219, 0.15);
 }
 
-/* Cores do Avatar por Tipo */
-.user-avatar {
-    width: 40px;
-    height: 40px;
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.status-dot.dot-active  { background: #27ae60; }
+.status-dot.dot-inactive { background: #e74c3c; }
+
+/*  Avatares  */
+.user-avatar,
+.hero-avatar {
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 16px;
     color: #fff;
     flex-shrink: 0;
 }
 
-.user-avatar.funcionario {
-    background: linear-gradient(135deg, #2c3e50, #34495e);
-}
+.user-avatar { width: 38px; height: 38px; font-size: 15px; }
+.hero-avatar  { width: 52px; height: 52px; font-size: 20px; border-radius: 14px; }
 
-.user-avatar.aluno {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-}
+.user-avatar.funcionario,
+.hero-avatar.funcionario { background: linear-gradient(135deg, #2c3e50, #34495e); }
 
-.user-avatar.visitante {
-    background: linear-gradient(135deg, #e67e22, #f39c12);
-}
+.user-avatar.aluno,
+.hero-avatar.aluno { background: linear-gradient(135deg, #27ae60, #2ecc71); }
 
-.user-info {
-    min-width: 0;
-    flex: 1;
-}
+.user-avatar.visitante,
+.hero-avatar.visitante { background: linear-gradient(135deg, #e67e22, #f39c12); }
 
+.user-info { min-width: 0; flex: 1; }
 .user-info h4 {
     margin: 0 0 4px;
     font-size: 13px;
@@ -516,10 +636,9 @@ onMounted(() => fetchUsuarios())
     text-overflow: ellipsis;
 }
 
-.user-badges {
-    display: flex;
-    gap: 6px;
-}
+/*  Badges */
+.user-badges,
+.hero-badges { display: flex; gap: 5px; flex-wrap: wrap; }
 
 .badge-role {
     font-size: 10px;
@@ -539,17 +658,23 @@ onMounted(() => fetchUsuarios())
     border-radius: 4px;
 }
 
-/* Formulário da Direita */
+.badge-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.badge-status.status-active  { color: #27ae60; background: rgba(39, 174, 96, 0.1); }
+.badge-status.status-inactive { color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+
+/*  Form Panel */
 .form-panel-header {
-    padding: 20px 24px;
+    padding: 18px 24px;
     border-bottom: 1px solid #f0f3f6;
 }
 
-.form-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+.form-title-wrap { display: flex; align-items: center; gap: 10px; }
 
 .form-panel-dot {
     width: 10px;
@@ -560,52 +685,63 @@ onMounted(() => fetchUsuarios())
 
 .form-panel-header h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: #1a2533;
 }
 
-.profile-form {
-    padding: 24px;
-}
+.profile-form { padding: 24px; }
 
-.section-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 700;
-    color: #a0aab4;
-    margin: 0 0 16px 0;
-}
-
-.form-section {
+/*  Profile Hero */
+.profile-hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, #f8fafc, #f0f4f8);
+    border: 1px solid #e8edf2;
+    border-radius: 12px;
+    padding: 16px 20px;
     margin-bottom: 24px;
 }
+
+.hero-meta { min-width: 0; }
+
+.hero-name {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a2533;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*  Form Fields  */
+.section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 700;
+    color: #a0aab4;
+    margin: 0 0 14px 0;
+}
+
+.form-section { margin-bottom: 8px; }
 
 .dynamic-section {
     animation: fadeIn 0.3s ease-out;
     background: #f8fafc;
-    padding: 20px;
+    padding: 18px 20px;
     border-radius: 12px;
     border: 1px dashed #dce2e8;
     margin-bottom: 24px;
 }
 
-.divider {
-    height: 1px;
-    background: #f0f3f6;
-    margin: 24px 0;
-}
+.divider { height: 1px; background: #f0f3f6; margin: 8px 0 24px; }
 
-.input-group {
-    margin-bottom: 14px;
-    flex: 1;
-}
+.input-group { margin-bottom: 14px; flex: 1; }
 
-.input-row {
-    display: flex;
-    gap: 16px;
-}
+.input-row { display: flex; gap: 16px; }
 
 label {
     display: block;
@@ -618,7 +754,7 @@ label {
 input,
 select {
     width: 100%;
-    padding: 11px 14px;
+    padding: 10px 13px;
     border: 1.5px solid #e0e6eb;
     border-radius: 8px;
     font-size: 13px;
@@ -637,10 +773,7 @@ select:focus {
 }
 
 input:disabled,
-select:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
+select:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .form-actions {
     display: flex;
@@ -653,7 +786,7 @@ select:disabled {
     background: #2C3E50;
     color: #fff;
     border: none;
-    padding: 12px 24px;
+    padding: 11px 24px;
     border-radius: 8px;
     font-size: 13px;
     font-weight: 700;
@@ -661,17 +794,16 @@ select:disabled {
     transition: 0.2s;
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 .btn-primary:hover:not(:disabled) {
     background: #1a2533;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
 }
 
-.btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-loading {
     display: inline-block;
@@ -681,48 +813,83 @@ select:disabled {
     border-top-color: #fff;
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
-    margin-right: 8px;
+    flex-shrink: 0;
 }
 
+/*  Empty State  */
 .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 24px;
     text-align: center;
-    padding: 60px 20px;
-    color: #8896a3;
 }
 
-.empty-icon {
-    font-size: 40px;
-    display: block;
-    margin-bottom: 12px;
-    opacity: 0.5;
+.empty-illustration { margin-bottom: 20px; opacity: 0.85; }
+
+.empty-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #4a5a6a;
+    margin: 0 0 8px;
 }
 
+.empty-hint {
+    font-size: 13px;
+    color: #a0aab4;
+    max-width: 260px;
+    line-height: 1.6;
+}
+
+/*  Skeleton  */
+.skeleton-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skeleton-card {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    background: #f8f9fb;
+    border-radius: 10px;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #e8edf2 25%, #f2f5f8 50%, #e8edf2 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 6px;
+}
+
+.skeleton-icon { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; }
+.skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.skeleton-line  { height: 10px; }
+.skeleton-line.long  { width: 65%; }
+.skeleton-line.short { width: 38%; }
+
+/*  Animations */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
-@media (max-width: 900px) {
-    .profile-layout.admin-view {
-        grid-template-columns: 1fr;
-    }
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 
-    .input-row {
-        flex-direction: column;
-        gap: 0;
-    }
+/*  Responsive */
+@media (max-width: 900px) {
+    .profile-layout.admin-view { grid-template-columns: 1fr; }
+    .input-row { flex-direction: column; gap: 0; }
 }
 </style>
