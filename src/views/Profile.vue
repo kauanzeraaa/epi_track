@@ -31,6 +31,9 @@
             <section class="panel list-panel" v-if="isAdmin">
                 <div class="list-header">
                     <span class="list-header-title">Usuários</span>
+
+                    <button @click.stop="createUser()" class="create-user">Novo</button>
+
                     <div class="search-wrap">
                         <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                         <input v-model="searchQuery" type="text" placeholder="Buscar usuário..." class="search-input" />
@@ -75,11 +78,21 @@
                 <div class="form-panel-header">
                     <div class="form-title-wrap">
                         <span class="form-panel-dot"></span>
-                        <h3>{{ isAdmin && form.id ? 'Editar Cadastro' : (isAdmin ? 'Selecione um usuário' : 'Meus Dados') }}</h3>
+                        <h3>{{ isAdmin && form.id ? 'Editar Cadastro' : (isAdmin && isCreating ? 'Novo Usuário' : (isAdmin ? 'Selecione um usuário' : 'Meus Dados')) }}</h3>
                     </div>
                 </div>
 
-                <form @submit.prevent="salvarUsuario" class="profile-form" v-if="form.id || !isAdmin">
+                <form @submit.prevent="salvarUsuario" class="profile-form" v-if="form.id || !isAdmin || isCreating">
+
+                    <div class="image-upload-area" :class="{ 'has-image': imagePreview }">
+                        <img v-if="imagePreview" :src="imagePreview" alt="Preview" class="image-preview" />
+                        <div v-else class="upload-placeholder">
+                            <span class="upload-icon">📷</span>
+                            <p>Foto do usuário</p>
+                            <span>Clique para selecionar</span>
+                        </div>
+                        <input type="file" @change="handleFileChange" accept="image/*" class="file-input" />
+                    </div>
 
                     <div class="profile-hero">
                         <div class="hero-avatar" :class="form.tipo_usuario?.toLowerCase()">
@@ -194,7 +207,7 @@
                     <div class="form-actions">
                         <button type="submit" class="btn-primary" :disabled="isSaving">
                             <span v-if="isSaving" class="btn-loading"></span>
-                            {{ isSaving ? 'Salvando...' : 'Salvar Alterações' }}
+                            {{ isSaving ? 'Salvando...' : (isCreating ? 'Cadastrar Usuário' : 'Salvar Alterações') }}
                         </button>
                     </div>
                 </form>
@@ -229,6 +242,9 @@ const isSaving = ref(false)
 const isLoading = ref(true)
 const usuarios = ref([])
 const searchQuery = ref('')
+const imageFile = ref(null)
+const imagePreview = ref(null)
+const isCreating = ref(false)
 
 const quantidadeUsuarios = computed(() => usuarios.value.length)
 
@@ -306,6 +322,9 @@ const limparForm = () => {
 }
 
 const selecionarUsuario = (usuario) => {
+    isCreating.value = false
+    imageFile.value = null
+    imagePreview.value = null
     limparForm()
     form.id = usuario.id
     form.nome = usuario.nome
@@ -333,13 +352,32 @@ const selecionarUsuario = (usuario) => {
 }
 
 const salvarUsuario = async () => {
-    if (!form.id) {
+    if (!form.id && !isCreating.value) {
         showNotification('Nenhum usuário selecionado para salvar.', 'error')
         return
     }
     isSaving.value = true
 
     try {
+        let publicImageUrl = null
+
+        if (imageFile.value) {
+            const fileExt = imageFile.value.name.split('.').pop()
+            const fileName = `${Math.random()}.${fileExt}`
+            const filePath = `user_photos/${fileName}`
+
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, imageFile.value)
+
+            if (uploadError) throw uploadError
+
+            const { data: urlData } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath)
+            publicImageUrl = urlData.publicUrl
+        }
+
         const payloadUsuario = {
             nome: form.nome,
             celular: form.celular,
@@ -350,18 +388,35 @@ const salvarUsuario = async () => {
             })
         }
 
-        const { error: errorUsuario } = await supabase
-            .from('usuarios')
-            .update(payloadUsuario)
-            .eq('id', form.id)
+        if (publicImageUrl) {
+            payloadUsuario.foto_user = publicImageUrl
+        }
 
-        if (errorUsuario) throw new Error('Erro ao salvar dados: ' + errorUsuario.message)
+        let userId = form.id
+
+        if (isCreating.value) {
+            const { data, error: errorUsuario } = await supabase
+                .from('usuarios')
+                .insert(payloadUsuario)
+                .select('id')
+                .single()
+
+            if (errorUsuario) throw new Error('Erro ao criar usuário: ' + errorUsuario.message)
+            userId = data.id
+        } else {
+            const { error: errorUsuario } = await supabase
+                .from('usuarios')
+                .update(payloadUsuario)
+                .eq('id', form.id)
+
+            if (errorUsuario) throw new Error('Erro ao salvar dados: ' + errorUsuario.message)
+        }
 
         let errorFilha = null
 
         if (form.tipo_usuario === 'Funcionario') {
             const { error } = await supabase.from('funcionarios').upsert({
-                id: form.id,
+                id: userId,
                 matricula: form.func_matricula,
                 cargo: form.func_cargo,
                 departamento: form.func_departamento
@@ -369,7 +424,7 @@ const salvarUsuario = async () => {
             errorFilha = error
         } else if (form.tipo_usuario === 'Aluno') {
             const { error } = await supabase.from('alunos').upsert({
-                id: form.id,
+                id: userId,
                 matricula: form.aluno_matricula,
                 curso: form.aluno_curso,
                 turma: form.aluno_turma
@@ -377,7 +432,7 @@ const salvarUsuario = async () => {
             errorFilha = error
         } else if (form.tipo_usuario === 'Visitante') {
             const { error } = await supabase.from('visitantes').upsert({
-                id: form.id,
+                id: userId,
                 cpf: form.vis_cpf,
                 motivo_visita: form.vis_motivo,
                 empresa_origem: form.vis_empresa
@@ -387,7 +442,10 @@ const salvarUsuario = async () => {
 
         if (errorFilha) throw new Error('Erro ao salvar dados específicos: ' + errorFilha.message)
 
-        showNotification('Perfil atualizado com sucesso!')
+        showNotification(isCreating.value ? 'Usuário cadastrado com sucesso!' : 'Perfil atualizado com sucesso!')
+        isCreating.value = false
+        imageFile.value = null
+        imagePreview.value = null
         await fetchUsuarios()
 
     } catch (error) {
@@ -396,6 +454,21 @@ const salvarUsuario = async () => {
     } finally {
         isSaving.value = false
     }
+}
+
+const handleFileChange = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        imageFile.value = file
+        imagePreview.value = URL.createObjectURL(file)
+    }
+}
+
+const createUser = () => {
+    isCreating.value = true
+    limparForm()
+    imageFile.value = null
+    imagePreview.value = null
 }
 
 watch(userProfile, (perfil) => {
@@ -885,6 +958,63 @@ select:disabled { opacity: 0.55; cursor: not-allowed; }
 @keyframes shimmer {
     0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+}
+
+/* Upload de imagem */
+.image-upload-area {
+    width: 100%;
+    height: 140px;
+    background: #f8f9fb;
+    border: 2px dashed #dce2e8;
+    border-radius: 12px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+}
+
+.image-upload-area:hover { border-color: #3498db; }
+
+.image-upload-area.has-image {
+    border-style: solid;
+    border-color: #e0e6eb;
+}
+
+.image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: #a0aab4;
+    pointer-events: none;
+}
+
+.upload-icon { font-size: 24px; }
+
+.upload-placeholder p {
+    font-size: 13px;
+    font-weight: 600;
+    color: #7a8a96;
+    margin: 0;
+}
+
+.upload-placeholder span { font-size: 12px; color: #b0bcc6; }
+
+.file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
 }
 
 /*  Responsive */

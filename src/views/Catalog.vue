@@ -20,7 +20,7 @@
 
     <div class="catalog-layout">
 
-      <!-- ── Painel esquerdo: lista ── -->
+      <!-- Painel esquerdo: lista -->
       <section class="panel list-panel">
 
         <div class="list-toolbar">
@@ -113,7 +113,7 @@
 
       </section>
 
-      <!-- ── Painel direito: formulário ── -->
+      <!-- Painel direito: formulário -->
       <aside class="panel form-panel">
         <div class="form-panel-header">
           <div class="form-panel-title">
@@ -192,7 +192,7 @@
 
     </div>
 
-    <!-- ── Toasts ── -->
+    <!-- Toasts -->
     <teleport to="body">
       <div class="toast-container">
         <transition-group name="toast">
@@ -210,7 +210,7 @@
         </transition-group>
       </div>
 
-      <!-- ── Modal de confirmação ── -->
+      <!-- Modal de confirmação -->
       <transition name="modal">
         <div v-if="modal.visible" class="modal-backdrop" @click.self="modal.resolve(false); modal.visible = false">
           <div class="modal-card">
@@ -248,7 +248,7 @@ const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrad
 
 const isSaving = ref(false)
 
-// ── Toast ──────────────────────────────────────
+// Toast
 const toasts = ref([])
 let toastId = 0
 
@@ -262,7 +262,7 @@ const dismissToast = (id) => {
   toasts.value = toasts.value.filter(t => t.id !== id)
 }
 
-// ── Modal ──────────────────────────────────────
+// Modal
 const modal = reactive({
   visible: false,
   title: '',
@@ -485,12 +485,12 @@ const filteredEpis = computed(() => {
 </script>
 
 <style scoped>
-/* ─── Página ──────────────────────────────────── */
+/*─ Página */
 .catalog-page {
   animation: fadeIn 0.4s ease-out;
 }
 
-/* ─── Header ──────────────────────────────────── */
+/*─ Header */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -537,7 +537,7 @@ const filteredEpis = computed(() => {
 .chip.blue   { background: rgba(52,152,219,0.1); color: #2176ae; }
 .chip.orange { background: rgba(243,156,18,0.1); color: #c07d00; }
 
-/* ─── Layout principal ────────────────────────── */
+/*─ Layout principal */
 .catalog-layout {
   display: grid;
   grid-template-columns: 1fr 360px;
@@ -545,7 +545,7 @@ const filteredEpis = computed(() => {
   align-items: start;
 }
 
-/* ─── Painel base ─────────────────────────────── */
+/*─ Painel base─ */
 .panel {
   background: #fff;
   border-radius: 16px;
@@ -554,7 +554,7 @@ const filteredEpis = computed(() => {
   overflow: hidden;
 }
 
-/* ─── Painel lista ────────────────────────────── */
+/*─ Painel lista */
 .list-toolbar {
   padding: 20px 20px 0;
   display: flex;
@@ -627,7 +627,7 @@ const filteredEpis = computed(() => {
   color: #fff;
 }
 
-/* ─── Empty state ─────────────────────────────── */
+/*─ Empty state─ */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -659,7 +659,7 @@ const filteredEpis = computed(() => {
   max-width: 300px;
 }
 
-/* ─── Formulário ──────────────────────────────── */
+/*─ Formulário */
 .form-panel-header {
   padding: 20px 22px 16px;
   border-bottom: 1px solid #f0f3f6;
@@ -876,7 +876,7 @@ input::placeholder {
   flex-shrink: 0;
 }
 
-/* ─── Grid Principal ──────────────────────────── */
+/*─ Grid Principal */
 .epi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -884,7 +884,7 @@ input::placeholder {
   padding: 0 4px 24px 4px; /* Pequeno padding lateral para as sombras não cortarem */
 }
 
-/* ─── O Card ──────────────────────────────────── */
+/*─ O Card */
 .epi-card {
   background: #ffffff;
   border: 1px solid #eef2f5;
@@ -903,7 +903,7 @@ input::placeholder {
   border-color: #dce2e8;
 }
 
-/* ─── Imagem ──────────────────────────────────── */
+/*─ Imagem */
 .epi-image-wrap {
   position: relative;
   height: 180px;
@@ -939,7 +939,7 @@ input::placeholder {
   opacity: 0.5;
 }
 
-/* ─── Badge Flutuante ─────────────────────────── */
+/*─ Badge Flutuante─ */
 .status-badge {
   position: absolute;
   top: 12px;
@@ -968,7 +968,7 @@ input::placeholder {
 .bg-success { background: rgba(46, 204, 113, 0.9); color: #fff; }
 .bg-danger { background: rgba(231, 76, 60, 0.9); color: #fff; }
 
-/* ─── Informações do EPI ──────────────────────── */
+/*─ Informações do EPI */
 .epi-info {
   padding: 20px;
   display: flex;
@@ -1021,7 +1021,7 @@ input::placeholder {
   margin: 0 16px;
 }
 
-/* ─── Barra de Progresso ──────────────────────── */
+/*─ Barra de Progresso */
 .stock-progress-wrap {
   margin-top: auto;
 }
@@ -1066,14 +1066,14 @@ input::placeholder {
 .fill-success { background: linear-gradient(90deg, #2ecc71, #27ae60); }
 .fill-danger { background: linear-gradient(90deg, #e74c3c, #c0392b); }
 
-/* ─── Animações ───────────────────────────────── */
+/*─ Animações─ */
 @keyframes pulse {
   0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
   70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0); }
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }
 
-/* ─── Animações ───────────────────────────────── */
+/*─ Animações─ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -1083,7 +1083,7 @@ input::placeholder {
   to { transform: rotate(360deg); }
 }
 
-/* ─── Responsividade ──────────────────────────────── */
+/*─ Responsividade */
 @media (max-width: 960px) {
   .catalog-layout {
     grid-template-columns: 1fr;
@@ -1094,7 +1094,7 @@ input::placeholder {
   }
 }
 
-/* ─── Botões de Ação do Card ──────────────────── */
+/*─ Botões de Ação do Card */
 .card-actions {
   display: flex;
   gap: 8px;
@@ -1134,7 +1134,7 @@ input::placeholder {
   background: rgba(231, 76, 60, 0.1);
 }
 
-/* ─── Toasts ──────────────────────────────────── */
+/*─ Toasts */
 .toast-container {
   position: fixed;
   top: 24px;
@@ -1185,7 +1185,7 @@ input::placeholder {
 }
 .toast-close:hover { color: #5a6a78; }
 
-/* ─── Modal ───────────────────────────────────── */
+/*─ Modal─ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1266,7 +1266,7 @@ input::placeholder {
 .modal-btn.confirm.danger { background: #e74c3c; color: #fff; }
 .modal-btn.confirm.danger:hover { background: #c0392b; }
 
-/* ─── Transições ──────────────────────────────── */
+/*─ Transições */
 .toast-enter-active, .toast-leave-active {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
