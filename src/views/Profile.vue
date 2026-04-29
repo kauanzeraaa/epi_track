@@ -1073,8 +1073,8 @@ select:disabled { opacity: 0.55; cursor: not-allowed; }
 
 /* Upload de imagem */
 .image-upload-area {
-    width: 100%;
-    height: 140px;
+    width: 200px;
+    height: 200px;
     background: #f8f9fb;
     border: 2px dashed #dce2e8;
     border-radius: 12px;
@@ -1085,7 +1085,6 @@ select:disabled { opacity: 0.55; cursor: not-allowed; }
     cursor: pointer;
     overflow: hidden;
     margin-bottom: 20px;
-    transition: border-color 0.2s;
 }
 
 .image-upload-area:hover { border-color: #3498db; }
