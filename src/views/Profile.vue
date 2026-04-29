@@ -150,6 +150,42 @@
 
                     <div class="divider"></div>
 
+                    <h4 class="section-title">Acesso ao Sistema</h4>
+                    <div class="form-section">
+                        <div class="input-group">
+                            <label>E-mail</label>
+                            <input v-model="form.email" type="email" :required="isCreating" :disabled="!isCreating" placeholder="usuario@exemplo.com" />
+                        </div>
+
+                        <template v-if="isCreating">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Senha Temporária</label>
+                                    <input v-model="form.senha" type="password" required autocomplete="new-password" />
+                                </div>
+                                <div class="input-group">
+                                    <label>Confirmar Senha</label>
+                                    <input v-model="form.confirmar_senha" type="password" required autocomplete="new-password" />
+                                </div>
+                            </div>
+                        </template>
+
+                        <template v-else>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Nova Senha</label>
+                                    <input v-model="form.nova_senha" type="password" placeholder="Deixe em branco para não alterar" autocomplete="new-password" />
+                                </div>
+                                <div class="input-group">
+                                    <label>Confirmar Nova Senha</label>
+                                    <input v-model="form.confirmar_senha" type="password" placeholder="Repita a nova senha" autocomplete="new-password" />
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="divider"></div>
+
                     <div v-if="form.tipo_usuario === 'Funcionario'" class="dynamic-section">
                         <h4 class="section-title">Dados do RH</h4>
                         <div class="input-row">
@@ -233,8 +269,8 @@ import { ref, reactive, computed, watch } from 'vue';
 import { useAuthStore } from '../composable/useAuthStore';
 import { useSupabase } from '../composable/useSupabase';
 
-const { userProfile } = useAuthStore();
-const { supabase } = useSupabase();
+const { userProfile, currentUser, fetchUserProfile } = useAuthStore();
+const { supabase, supabaseAdmin } = useSupabase();
 
 const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
@@ -267,11 +303,15 @@ const showNotification = (message, type = 'success') => {
 
 const form = reactive({
     id: '',
+    email: '',
     nome: '',
     celular: '',
     tipo_usuario: '',
     perfil_acesso: 'Comum',
     status: 'Ativo',
+    senha: '',
+    nova_senha: '',
+    confirmar_senha: '',
     func_matricula: '',
     func_cargo: '',
     func_departamento: '',
@@ -305,7 +345,7 @@ const fetchUsuarios = async () => {
         usuarios.value = data
 
         if (!isAdmin.value && data.length > 0) {
-            selecionarUsuario(data[0])
+            await selecionarUsuario(data[0])
         }
     } catch (error) {
         console.log('Erro ao buscar usuários:', error.message)
@@ -321,10 +361,16 @@ const limparForm = () => {
     form.status = 'Ativo'
 }
 
-const selecionarUsuario = (usuario) => {
+const limparSenhas = () => {
+    form.senha = ''
+    form.nova_senha = ''
+    form.confirmar_senha = ''
+}
+
+const selecionarUsuario = async (usuario) => {
     isCreating.value = false
     imageFile.value = null
-    imagePreview.value = null
+    imagePreview.value = usuario.foto_perfil || null
     limparForm()
     form.id = usuario.id
     form.nome = usuario.nome
@@ -332,6 +378,13 @@ const selecionarUsuario = (usuario) => {
     form.tipo_usuario = usuario.tipo_usuario
     form.perfil_acesso = usuario.perfil_acesso
     form.status = usuario.status
+
+    if (usuario.id === currentUser.value?.id) {
+        form.email = currentUser.value.email || ''
+    } else if (supabaseAdmin) {
+        const { data } = await supabaseAdmin.auth.admin.getUserById(usuario.id)
+        form.email = data.user?.email || ''
+    }
 
     if (usuario.tipo_usuario === 'Funcionario' && usuario.funcionarios) {
         const f = Array.isArray(usuario.funcionarios) ? usuario.funcionarios[0] : usuario.funcionarios
@@ -356,6 +409,37 @@ const salvarUsuario = async () => {
         showNotification('Nenhum usuário selecionado para salvar.', 'error')
         return
     }
+
+    if (isCreating.value) {
+        if (!form.email) {
+            showNotification('Informe o e-mail de acesso.', 'error')
+            return
+        }
+        if (!form.senha) {
+            showNotification('Informe a senha temporária.', 'error')
+            return
+        }
+        if (form.senha !== form.confirmar_senha) {
+            showNotification('As senhas não conferem.', 'error')
+            return
+        }
+        if (!supabaseAdmin) {
+            showNotification('Chave de serviço não configurada (VITE_SUPABASE_SERVICE_ROLE_KEY).', 'error')
+            return
+        }
+    }
+
+    if (!isCreating.value && form.nova_senha) {
+        if (form.nova_senha !== form.confirmar_senha) {
+            showNotification('As senhas não conferem.', 'error')
+            return
+        }
+        if (form.nova_senha.length < 6) {
+            showNotification('A nova senha deve ter pelo menos 6 caracteres.', 'error')
+            return
+        }
+    }
+
     isSaving.value = true
 
     try {
@@ -389,20 +473,26 @@ const salvarUsuario = async () => {
         }
 
         if (publicImageUrl) {
-            payloadUsuario.foto_user = publicImageUrl
+            payloadUsuario.foto_perfil = publicImageUrl
         }
 
         let userId = form.id
 
         if (isCreating.value) {
-            const { data, error: errorUsuario } = await supabase
-                .from('usuarios')
-                .insert(payloadUsuario)
-                .select('id')
-                .single()
+            const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+                email: form.email,
+                password: form.senha,
+                email_confirm: true
+            })
+            if (authError) throw new Error('Erro ao criar acesso: ' + authError.message)
 
-            if (errorUsuario) throw new Error('Erro ao criar usuário: ' + errorUsuario.message)
-            userId = data.id
+            userId = authData.user.id
+
+            const { error: errorUsuario } = await supabase
+                .from('usuarios')
+                .insert({ id: userId, ...payloadUsuario })
+
+            if (errorUsuario) throw new Error('Erro ao criar cadastro: ' + errorUsuario.message)
         } else {
             const { error: errorUsuario } = await supabase
                 .from('usuarios')
@@ -410,6 +500,18 @@ const salvarUsuario = async () => {
                 .eq('id', form.id)
 
             if (errorUsuario) throw new Error('Erro ao salvar dados: ' + errorUsuario.message)
+
+            if (form.nova_senha) {
+                const ehProprioUsuario = form.id === currentUser.value?.id
+
+                if (ehProprioUsuario) {
+                    const { error } = await supabase.auth.updateUser({ password: form.nova_senha })
+                    if (error) throw new Error('Erro ao alterar senha: ' + error.message)
+                } else if (supabaseAdmin) {
+                    const { error } = await supabaseAdmin.auth.admin.updateUserById(form.id, { password: form.nova_senha })
+                    if (error) throw new Error('Erro ao redefinir senha: ' + error.message)
+                }
+            }
         }
 
         let errorFilha = null
@@ -445,8 +547,16 @@ const salvarUsuario = async () => {
         showNotification(isCreating.value ? 'Usuário cadastrado com sucesso!' : 'Perfil atualizado com sucesso!')
         isCreating.value = false
         imageFile.value = null
-        imagePreview.value = null
+        limparSenhas()
         await fetchUsuarios()
+        await fetchUserProfile()
+
+        // Garante que o avatar do Dashboard reflete a foto mesmo se a view não expõe foto_perfil
+        if (publicImageUrl && userId === currentUser.value?.id && userProfile.value) {
+            userProfile.value.foto_perfil = publicImageUrl
+        }
+
+        imagePreview.value = publicImageUrl || imagePreview.value
 
     } catch (error) {
         console.error(error)
@@ -467,6 +577,7 @@ const handleFileChange = (event) => {
 const createUser = () => {
     isCreating.value = true
     limparForm()
+    limparSenhas()
     imageFile.value = null
     imagePreview.value = null
 }
