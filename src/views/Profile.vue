@@ -269,7 +269,7 @@ import { ref, reactive, computed, watch } from 'vue';
 import { useAuthStore } from '../composable/useAuthStore';
 import { useSupabase } from '../composable/useSupabase';
 
-const { userProfile, currentUser } = useAuthStore();
+const { userProfile, currentUser, fetchUserProfile } = useAuthStore();
 const { supabase, supabaseAdmin } = useSupabase();
 
 const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
@@ -345,7 +345,7 @@ const fetchUsuarios = async () => {
         usuarios.value = data
 
         if (!isAdmin.value && data.length > 0) {
-            selecionarUsuario(data[0])
+            await selecionarUsuario(data[0])
         }
     } catch (error) {
         console.log('Erro ao buscar usuários:', error.message)
@@ -370,7 +370,7 @@ const limparSenhas = () => {
 const selecionarUsuario = async (usuario) => {
     isCreating.value = false
     imageFile.value = null
-    imagePreview.value = null
+    imagePreview.value = usuario.foto_perfil || null
     limparForm()
     form.id = usuario.id
     form.nome = usuario.nome
@@ -547,9 +547,16 @@ const salvarUsuario = async () => {
         showNotification(isCreating.value ? 'Usuário cadastrado com sucesso!' : 'Perfil atualizado com sucesso!')
         isCreating.value = false
         imageFile.value = null
-        imagePreview.value = null
         limparSenhas()
         await fetchUsuarios()
+        await fetchUserProfile()
+
+        // Garante que o avatar do Dashboard reflete a foto mesmo se a view não expõe foto_perfil
+        if (publicImageUrl && userId === currentUser.value?.id && userProfile.value) {
+            userProfile.value.foto_perfil = publicImageUrl
+        }
+
+        imagePreview.value = publicImageUrl || imagePreview.value
 
     } catch (error) {
         console.error(error)
