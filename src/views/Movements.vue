@@ -26,13 +26,8 @@
         <div class="list-toolbar">
           <h3>Histórico de Entregas</h3>
           <div class="tab-bar">
-            <button
-              v-for="tab in tabs"
-              :key="tab.value"
-              class="tab-btn"
-              :class="{ active: activeTab === tab.value }"
-              @click="activeTab = tab.value"
-            >
+            <button v-for="tab in tabs" :key="tab.value" class="tab-btn" :class="{ active: activeTab === tab.value }"
+              @click="activeTab = tab.value">
               {{ tab.label }}
               <span class="tab-count">{{ tab.count }}</span>
             </button>
@@ -52,11 +47,7 @@
           </div>
 
           <div v-else-if="filteredEntregas.length > 0" class="history-list">
-            <div
-              v-for="entrega in filteredEntregas"
-              :key="entrega.id"
-              class="delivery-card"
-            >
+            <div v-for="entrega in filteredEntregas" :key="entrega.id" class="delivery-card">
               <div class="card-accent" :class="entrega.data_devolucao ? 'gray' : 'blue'"></div>
 
               <div class="card-icon-wrap">
@@ -66,10 +57,7 @@
               <div class="card-body">
                 <div class="card-top">
                   <h4>{{ entrega.epis?.nome || 'EPI Desconhecido' }}</h4>
-                  <span
-                    class="status-badge"
-                    :class="entrega.data_devolucao ? 'returned' : 'active'"
-                  >
+                  <span class="status-badge" :class="entrega.data_devolucao ? 'returned' : 'active'">
                     {{ entrega.data_devolucao ? 'Devolvido' : 'Em uso' }}
                   </span>
                 </div>
@@ -91,10 +79,11 @@
                   <img src="../assets/cards/alert.png" alt="" class="alert-icon" />
                   Troca prevista em {{ formatarData(entrega.data_troca, false) }}
                 </div>
-                
+
                 <div class="card-actions" v-if="isAdmin && !entrega.data_devolucao">
                   <button @click.stop="registrarDevolucao(entrega)" class="btn-return">
-                    <img src="../assets/return.png" alt="Registrar Devolução" style="width:13px; height:13px; opacity: 0.7 ;">
+                    <img src="../assets/return.png" alt="Registrar Devolução"
+                      style="width:13px; height:13px; opacity: 0.7 ;">
                     Registrar Devolução
                   </button>
                 </div>
@@ -159,16 +148,12 @@
                   <p class="preview-ca">CA {{ epiInfo.ca }} · Tam {{ epiInfo.tamanho }}</p>
                   <div class="preview-stock">
                     <div class="stock-bar-wrap">
-                      <div
-                        class="stock-bar-fill"
+                      <div class="stock-bar-fill"
                         :class="epiInfo.estoque_atual <= epiInfo.estoque_minimo ? 'danger' : 'ok'"
-                        :style="{ width: stockPercent(epiInfo) + '%' }"
-                      ></div>
+                        :style="{ width: stockPercent(epiInfo) + '%' }"></div>
                     </div>
-                    <span
-                      class="stock-label"
-                      :class="epiInfo.estoque_atual <= epiInfo.estoque_minimo ? 'text-danger' : 'text-ok'"
-                    >
+                    <span class="stock-label"
+                      :class="epiInfo.estoque_atual <= epiInfo.estoque_minimo ? 'text-danger' : 'text-ok'">
                       {{ epiInfo.estoque_atual }} / mín {{ epiInfo.estoque_minimo }}
                     </span>
                   </div>
@@ -192,11 +177,7 @@
 
           <div class="form-actions">
             <button type="button" class="btn-secondary" @click="resetForm">Limpar</button>
-            <button
-              type="submit"
-              class="btn-primary"
-              :disabled="isSaving || !form.epi_id || !form.usuario_id"
-            >
+            <button type="submit" class="btn-primary" :disabled="isSaving || !form.epi_id || !form.usuario_id">
               <span v-if="isSaving" class="btn-loading"></span>
               {{ isSaving ? 'Registrando...' : 'Registrar Entrega' }}
             </button>
@@ -211,20 +192,32 @@
     <teleport to="body">
       <div class="toast-container">
         <transition-group name="toast">
-          <div
-            v-for="t in toasts"
-            :key="t.id"
-            class="toast"
-            :class="t.type"
-          >
+          <div v-for="t in toasts" :key="t.id" class="toast" :class="t.type">
             <span class="toast-icon">
-              <svg v-if="t.type === 'success'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-              <svg v-else-if="t.type === 'error'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <svg v-if="t.type === 'success'" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              <svg v-else-if="t.type === 'error'" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="m15 9-6 6M9 9l6 6" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
             </span>
             <span class="toast-message">{{ t.message }}</span>
             <button class="toast-close" @click="dismissToast(t.id)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </transition-group>
@@ -235,8 +228,18 @@
         <div v-if="modal.visible" class="modal-backdrop" @click.self="modal.resolve(false); modal.visible = false">
           <div class="modal-card">
             <div class="modal-icon-wrap" :class="modal.iconType">
-              <svg v-if="modal.iconType === 'warning'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+              <svg v-if="modal.iconType === 'warning'" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4M12 16h.01" />
+              </svg>
             </div>
             <h3 class="modal-title">{{ modal.title }}</h3>
             <p class="modal-message">{{ modal.message }}</p>
@@ -244,7 +247,8 @@
               <button class="modal-btn cancel" @click="modal.resolve(false); modal.visible = false">
                 {{ modal.cancelText }}
               </button>
-              <button class="modal-btn confirm" :class="modal.iconType" @click="modal.resolve(true); modal.visible = false">
+              <button class="modal-btn confirm" :class="modal.iconType"
+                @click="modal.resolve(true); modal.visible = false">
                 {{ modal.confirmText }}
               </button>
             </div>
@@ -529,8 +533,15 @@ const registrarDevolucao = async (entrega) => {
   object-fit: contain;
 }
 
-.chip.blue  { background: rgba(52,152,219,0.1); color: #2176ae; }
-.chip.green { background: rgba(46,204,113,0.1); color: #1a9950; }
+.chip.blue {
+  background: rgba(52, 152, 219, 0.1);
+  color: #2176ae;
+}
+
+.chip.green {
+  background: rgba(46, 204, 113, 0.1);
+  color: #1a9950;
+}
 
 /* Layout */
 .movements-layout {
@@ -543,8 +554,8 @@ const registrarDevolucao = async (entrega) => {
 .panel {
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
@@ -591,7 +602,7 @@ const registrarDevolucao = async (entrega) => {
 .tab-btn.active {
   background: #fff;
   color: #1a2533;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .tab-count {
@@ -651,9 +662,17 @@ const registrarDevolucao = async (entrega) => {
   gap: 8px;
 }
 
-.skeleton-line { height: 12px; }
-.skeleton-line.long  { width: 70%; }
-.skeleton-line.short { width: 45%; }
+.skeleton-line {
+  height: 12px;
+}
+
+.skeleton-line.long {
+  width: 70%;
+}
+
+.skeleton-line.short {
+  width: 45%;
+}
 
 /* Cards de entrega */
 .history-list {
@@ -677,7 +696,7 @@ const registrarDevolucao = async (entrega) => {
 }
 
 .delivery-card:hover {
-  box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
   transform: translateY(-1px);
 }
 
@@ -689,14 +708,19 @@ const registrarDevolucao = async (entrega) => {
   width: 4px;
 }
 
-.card-accent.blue { background: #3498db; }
-.card-accent.gray { background: #c8d0d8; }
+.card-accent.blue {
+  background: #3498db;
+}
+
+.card-accent.gray {
+  background: #c8d0d8;
+}
 
 .card-icon-wrap {
   background: #fff;
   padding: 9px;
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
   margin-left: 6px;
 }
@@ -739,8 +763,15 @@ const registrarDevolucao = async (entrega) => {
   flex-shrink: 0;
 }
 
-.status-badge.active   { background: rgba(46,204,113,0.12); color: #1a9950; }
-.status-badge.returned { background: rgba(0,0,0,0.05); color: #8896a3; }
+.status-badge.active {
+  background: rgba(46, 204, 113, 0.12);
+  color: #1a9950;
+}
+
+.status-badge.returned {
+  background: rgba(0, 0, 0, 0.05);
+  color: #8896a3;
+}
 
 .card-user {
   display: flex;
@@ -792,7 +823,7 @@ const registrarDevolucao = async (entrega) => {
   font-size: 11px;
   font-weight: 600;
   color: #c07d00;
-  background: rgba(243,156,18,0.08);
+  background: rgba(243, 156, 18, 0.08);
   padding: 4px 10px;
   border-radius: 6px;
   width: fit-content;
@@ -886,7 +917,8 @@ label {
   margin-bottom: 6px;
 }
 
-input, select {
+input,
+select {
   width: 100%;
   padding: 10px 12px;
   border: 1.5px solid #e0e6eb;
@@ -898,7 +930,8 @@ input, select {
   box-sizing: border-box;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   outline: none;
   border-color: #3498db;
   background: #fff;
@@ -1000,8 +1033,13 @@ input::placeholder {
   transition: width 0.4s ease;
 }
 
-.stock-bar-fill.ok     { background: #2ecc71; }
-.stock-bar-fill.danger { background: #e74c3c; }
+.stock-bar-fill.ok {
+  background: #2ecc71;
+}
+
+.stock-bar-fill.danger {
+  background: #e74c3c;
+}
 
 .stock-label {
   font-size: 11px;
@@ -1009,8 +1047,13 @@ input::placeholder {
   white-space: nowrap;
 }
 
-.text-ok     { color: #1a9950; }
-.text-danger { color: #c0392b; }
+.text-ok {
+  color: #1a9950;
+}
+
+.text-danger {
+  color: #c0392b;
+}
 
 /* Botões */
 .form-actions {
@@ -1067,7 +1110,7 @@ input::placeholder {
 .btn-loading {
   width: 13px;
   height: 13px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -1097,17 +1140,31 @@ input::placeholder {
 
 /* Animações */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /*  Botão de devolução  */
@@ -1192,9 +1249,17 @@ input::placeholder {
   flex-shrink: 0;
 }
 
-.toast.success .toast-icon { color: #2ecc71; }
-.toast.error   .toast-icon { color: #e74c3c; }
-.toast.warning .toast-icon { color: #f39c12; }
+.toast.success .toast-icon {
+  color: #2ecc71;
+}
+
+.toast.error .toast-icon {
+  color: #e74c3c;
+}
+
+.toast.warning .toast-icon {
+  color: #f39c12;
+}
 
 .toast-message {
   flex: 1;
@@ -1213,7 +1278,9 @@ input::placeholder {
   transition: color 0.15s;
 }
 
-.toast-close:hover { color: #5a6a78; }
+.toast-close:hover {
+  color: #5a6a78;
+}
 
 /* Modal */
 .modal-backdrop {
@@ -1252,8 +1319,15 @@ input::placeholder {
   margin-bottom: 4px;
 }
 
-.modal-icon-wrap.warning { background: rgba(243, 156, 18, 0.12); color: #f39c12; }
-.modal-icon-wrap.info    { background: rgba(52, 152, 219, 0.12); color: #3498db; }
+.modal-icon-wrap.warning {
+  background: rgba(243, 156, 18, 0.12);
+  color: #f39c12;
+}
+
+.modal-icon-wrap.info {
+  background: rgba(52, 152, 219, 0.12);
+  color: #3498db;
+}
 
 .modal-title {
   font-size: 18px;
@@ -1292,21 +1366,27 @@ input::placeholder {
   color: #5a6a78;
 }
 
-.modal-btn.cancel:hover { background: #e8ecf0; }
+.modal-btn.cancel:hover {
+  background: #e8ecf0;
+}
 
 .modal-btn.confirm.warning {
   background: #f39c12;
   color: #fff;
 }
 
-.modal-btn.confirm.warning:hover { background: #d68910; }
+.modal-btn.confirm.warning:hover {
+  background: #d68910;
+}
 
 .modal-btn.confirm.info {
   background: #3498db;
   color: #fff;
 }
 
-.modal-btn.confirm.info:hover { background: #2176ae; }
+.modal-btn.confirm.info:hover {
+  background: #2176ae;
+}
 
 /* Transições toast */
 .toast-enter-active,
