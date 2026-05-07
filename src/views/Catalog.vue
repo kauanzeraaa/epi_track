@@ -127,7 +127,7 @@
           <div class="image-upload-area" :class="{ 'has-image': imagePreview }">
             <img v-if="imagePreview" :src="imagePreview" alt="Preview" class="image-preview" />
             <div v-else class="upload-placeholder">
-              <span class="upload-icon">📷</span>
+              <span class="upload-icon"><img src="../assets/digital-camera.png" alt="" class="digital-cam"></span>
               <p>Foto do equipamento</p>
               <span>Clique para selecionar</span>
             </div>
@@ -732,6 +732,11 @@ const filteredEpis = computed(() => {
 
 .upload-icon {
   font-size: 26px;
+}
+
+.digital-cam{
+  width: 20px;
+  opacity: 60%;
 }
 
 .upload-placeholder p {
