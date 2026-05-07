@@ -87,7 +87,7 @@
                     <div class="image-upload-area" :class="{ 'has-image': imagePreview }">
                         <img v-if="imagePreview" :src="imagePreview" alt="Preview" class="image-preview" />
                         <div v-else class="upload-placeholder">
-                            <span class="upload-icon">📷</span>
+                            <span class="upload-icon"><img src="../assets/digital-camera.png" alt="" class="digital-cam"></span>
                             <p>Foto do usuário</p>
                             <span>Clique para selecionar</span>
                         </div>
@@ -250,11 +250,7 @@
 
                 <div v-else class="empty-state">
                     <div class="empty-illustration">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
-                            <circle cx="40" cy="40" r="40" fill="#f0f4f8"/>
-                            <circle cx="40" cy="31" r="13" fill="#d8e2ec"/>
-                            <path d="M14 68c0-14.359 11.641-26 26-26s26 11.641 26 26" stroke="#d8e2ec" stroke-width="4" stroke-linecap="round"/>
-                        </svg>
+                        <img src="../assets/user.png" alt="Foto Usuário" class="user-img">
                     </div>
                     <p class="empty-title">Nenhum usuário selecionado</p>
                     <span class="empty-hint">Clique em um usuário na lista ao lado para visualizar e editar seus dados.</span>
@@ -701,6 +697,20 @@ watch(userProfile, (perfil) => {
     color: #a0aab4;
 }
 
+.create-user{
+
+  gap: 8px;
+  background: #2C3E50;
+  color: #fff;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
 .search-wrap { position: relative; }
 
 .search-icon {
@@ -1012,6 +1022,8 @@ select:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .empty-illustration { margin-bottom: 20px; opacity: 0.85; }
 
+.user-img { width: 80px; opacity: 70%; }
+
 .empty-title {
     font-size: 15px;
     font-weight: 600;
@@ -1110,6 +1122,8 @@ select:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .upload-icon { font-size: 24px; }
+
+.digital-cam { width: 15px; opacity: 50%; }
 
 .upload-placeholder p {
     font-size: 13px;
