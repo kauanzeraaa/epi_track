@@ -266,7 +266,21 @@ import { useAuthStore } from '../composable/useAuthStore';
 import { useSupabase } from '../composable/useSupabase';
 
 const { userProfile, currentUser, fetchUserProfile } = useAuthStore();
-const { supabase, supabaseAdmin } = useSupabase();
+const { supabase } = useSupabase();
+
+const invokeAdmin = async (body) => {
+    const { data, error } = await supabase.functions.invoke('admin-users', { body })
+    if (error) {
+        let mensagem = error.message
+        try {
+            const ctx = await error.context?.json?.()
+            if (ctx?.error) mensagem = ctx.error
+        } catch {}
+        throw new Error(mensagem)
+    }
+    if (data?.error) throw new Error(data.error)
+    return data
+};
 
 const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
@@ -377,9 +391,13 @@ const selecionarUsuario = async (usuario) => {
 
     if (usuario.id === currentUser.value?.id) {
         form.email = currentUser.value.email || ''
-    } else if (supabaseAdmin) {
-        const { data } = await supabaseAdmin.auth.admin.getUserById(usuario.id)
-        form.email = data.user?.email || ''
+    } else if (isAdmin.value) {
+        try {
+            const data = await invokeAdmin({ action: 'get-email', userId: usuario.id })
+            form.email = data?.email || ''
+        } catch {
+            form.email = ''
+        }
     }
 
     if (usuario.tipo_usuario === 'Funcionario' && usuario.funcionarios) {
@@ -417,10 +435,6 @@ const salvarUsuario = async () => {
         }
         if (form.senha !== form.confirmar_senha) {
             showNotification('As senhas não conferem.', 'error')
-            return
-        }
-        if (!supabaseAdmin) {
-            showNotification('Chave de serviço não configurada (VITE_SUPABASE_SERVICE_ROLE_KEY).', 'error')
             return
         }
     }
@@ -475,18 +489,20 @@ const salvarUsuario = async () => {
         let userId = form.id
 
         if (isCreating.value) {
-            const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-                email: form.email,
-                password: form.senha,
-                email_confirm: true
-            })
-            if (authError) throw new Error('Erro ao criar acesso: ' + authError.message)
-
-            userId = authData.user.id
+            try {
+                const authData = await invokeAdmin({
+                    action: 'create',
+                    email: form.email,
+                    password: form.senha
+                })
+                userId = authData.userId
+            } catch (e) {
+                throw new Error('Erro ao criar acesso: ' + e.message)
+            }
 
             const { error: errorUsuario } = await supabase
                 .from('usuarios')
-                .insert({ id: userId, ...payloadUsuario })
+                .upsert({ id: userId, ...payloadUsuario })
 
             if (errorUsuario) throw new Error('Erro ao criar cadastro: ' + errorUsuario.message)
         } else {
@@ -503,9 +519,16 @@ const salvarUsuario = async () => {
                 if (ehProprioUsuario) {
                     const { error } = await supabase.auth.updateUser({ password: form.nova_senha })
                     if (error) throw new Error('Erro ao alterar senha: ' + error.message)
-                } else if (supabaseAdmin) {
-                    const { error } = await supabaseAdmin.auth.admin.updateUserById(form.id, { password: form.nova_senha })
-                    if (error) throw new Error('Erro ao redefinir senha: ' + error.message)
+                } else {
+                    try {
+                        await invokeAdmin({
+                            action: 'update-password',
+                            userId: form.id,
+                            password: form.nova_senha
+                        })
+                    } catch (e) {
+                        throw new Error('Erro ao redefinir senha: ' + e.message)
+                    }
                 }
             }
         }
