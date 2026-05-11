@@ -71,9 +71,9 @@
                         </div>
 
                         <div class="alert-actions" v-if="alerta.status === 'Pendente'">
-                            <button class="btn-resolve" @click="marcarComoResolvido(alerta.id)" :disabled="isSaving">
-                                {{ isSaving ? '...' : 'Marcar Resolvido' }}
-                            </button>
+                            <router-link to="/catalog" class="btn-resolve">
+                                {{ alerta.tipo_alerta === 'CA Vencido' ? 'Atualizar C.A. no Catálogo' : 'Repor Estoque' }}
+                            </router-link>
                         </div>
                     </div>
                 </div>
@@ -115,7 +115,9 @@ const fetchAlertas = async () => {
                 *,
                 epis (nome, ca, validade_ca, estoque_atual, estoque_minimo)
             `)
+            .order('status', { ascending: true })
             .order('created_at', { ascending: false })
+            .limit(30)
 
         if (error) throw error
         alertas.value = data
@@ -123,29 +125,6 @@ const fetchAlertas = async () => {
         console.error('Erro ao buscar alertas:', error.message)
     } finally {
         isLoading.value = false
-    }
-}
-
-const marcarComoResolvido = async (alertaId) => {
-    isSaving.value = true
-    try {
-        const { error } = await supabase
-            .from('alertas')
-            .update({ status: 'Resolvido', updated_at: new Date().toISOString() })
-            .eq('id', alertaId)
-
-        if (error) throw error
-
-        // Atualiza a lista na tela sem precisar ir no banco de novo
-        const alertaIndex = alertas.value.findIndex(a => a.id === alertaId)
-        if (alertaIndex !== -1) {
-            alertas.value[alertaIndex].status = 'Resolvido'
-        }
-
-    } catch (error) {
-        alert('Erro ao resolver alerta: ' + error.message)
-    } finally {
-        isSaving.value = false
     }
 }
 
@@ -373,6 +352,9 @@ onMounted(() => fetchAlertas())
     color: #2c3e50;
     cursor: pointer;
     transition: 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
 }
 
 .btn-resolve:hover {
