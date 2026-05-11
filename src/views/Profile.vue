@@ -246,6 +246,7 @@
                             {{ isSaving ? 'Salvando...' : (isCreating ? 'Cadastrar Usuário' : 'Salvar Alterações') }}
                         </button>
                     </div>
+
                 </form>
 
                 <div v-else class="empty-state">
@@ -288,13 +289,14 @@ const filteredUsuarios = computed(() => {
 
 const toast = reactive({ visible: false, message: '', type: 'success' })
 let toastTimeout = null
+let timerToast = 5000 // alterar tempo de mensagem na tela
 
 const showNotification = (message, type = 'success') => {
     clearTimeout(toastTimeout)
     toast.message = message
     toast.type = type
     toast.visible = true
-    toastTimeout = setTimeout(() => { toast.visible = false }, 3500)
+    toastTimeout = setTimeout(() => { toast.visible = false }, timerToast)
 }
 
 const form = reactive({
@@ -439,6 +441,23 @@ const salvarUsuario = async () => {
     isSaving.value = true
 
     try {
+        // impede de inativar o usuário caso ele tenha EPIs sob seu controle
+        if (!isCreating.value && isAdmin.value && form.status === 'Inativo'){
+            const { count, error: countError} = await supabase
+                .from('entrega_epis')
+                .select('*', {count: 'exact', head: true})
+                .eq('usuario_id', form.id)
+                .is('data_devolucao', null)
+
+            if (countError) throw countError
+
+            if (count > 0) {
+                showNotification(`Não é possível inativar o usuário. Ele possui ${count} EPI(s) pendente(s) de devolução.`, 'error')
+                isSaving.value = false
+                return // Cancela o salvamento !
+            }
+        }
+
         let publicImageUrl = null
 
         if (imageFile.value) {
