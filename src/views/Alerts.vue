@@ -105,6 +105,10 @@ const alertasFiltrados = computed(() => {
 const fetchAlertas = async () => {
     isLoading.value = true
     try {
+        // chama a função do banco que verifica se o ca esta vencido
+        await supabase.rpc('verificar_ca_vencido')
+        // comando rpc (Remote Procedure Call) é a forma que o supabase usa para rodar funções que estão guardadas dentro do banco
+
         const { data, error } = await supabase
             .from('alertas')
             .select(`
