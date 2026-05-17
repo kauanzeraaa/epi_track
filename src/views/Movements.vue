@@ -117,7 +117,7 @@
               <select v-model="form.usuario_id" required :disabled="isLoadingDados">
                 <option value="" disabled>Selecione um funcionário...</option>
                 <option v-for="user in usuarios" :key="user.id" :value="user.id">
-                  {{ user.nome }}
+                  {{ user.nome }} — ({{ user.tipo_usuario }})
                 </option>
               </select>
             </div>
@@ -347,7 +347,7 @@ const stockPercent = (epi) => {
 const fetchData = async () => {
   isLoadingDados.value = true
   try {
-    const { data: usersData } = await supabase.from('usuarios').select('id, nome').order('nome')
+    const { data: usersData } = await supabase.from('usuarios').select('id, nome, tipo_usuario').order('nome')
     if (usersData) usuarios.value = usersData
 
     const { data: episData } = await supabase.from('epis').select('*').order('nome')
@@ -391,9 +391,28 @@ const resetForm = () => {
 const handleSubmit = async () => {
   isSaving.value = true
   try {
+    // verifica se a quantidade de EPI selecionada existe no estoque
     const epiSelecionado = epis.value.find(e => e.id === form.epi_id)
     if (epiSelecionado.estoque_atual < form.quantidade) {
       showToast(`Estoque insuficiente! Disponível: ${epiSelecionado.estoque_atual}`, 'error')
+      return
+    }
+
+    const hoje = new Date()
+    hoje.setHours(0, 0, 0, 0) // Zera as horas para comparar apenas os dias
+    const dataValidadeCa = new Date(epiSelecionado.validade_ca)
+
+    // verifica se o CA do epi selecionado está vencido
+    if (dataValidadeCa < hoje) {
+      showToast(`Bloqueado! O C.A. deste EPI venceu em ${formatarData(epiSelecionado.validade_ca, false)}. Proibido entregar equipamentos vencidos.`, 'error')
+      isSaving.value = false
+      return
+    }
+
+    // permite visitantes pegarem apenas 1 tipo de EPI por vez
+    if (usuarioSelecionado.tipo_usuario === 'Visitante' && form.quantidade > 1) {
+      showToast('Bloqueado! Visitantes só podem receber no máximo 1 unidade por entrega.', 'error')
+      isSaving.value = false
       return
     }
 
