@@ -409,6 +409,8 @@ const handleSubmit = async () => {
       return
     }
 
+    const usuarioSelecionado = usuarios.value.find(u => u.id === form.usuario_id)
+    
     // permite visitantes pegarem apenas 1 tipo de EPI por vez
     if (usuarioSelecionado.tipo_usuario === 'Visitante' && form.quantidade > 1) {
       showToast('Bloqueado! Visitantes só podem receber no máximo 1 unidade por entrega.', 'error')
