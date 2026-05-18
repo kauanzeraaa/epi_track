@@ -12,6 +12,7 @@ import Catalog from '../views/Catalog.vue'
 import History from '../views/History.vue'
 import Movements from '../views/Movements.vue'
 import Profile from '../views/Profile.vue'
+import RedefinirSenha from '../views/RedefinirSenha.vue'
 
 const routes = [
   // ==========================================
@@ -22,6 +23,8 @@ const routes = [
   { path: '/contact', component: Contact },
   { path: '/login', component: Login },
   { path: '/logon', component: UserLogon },
+  { path: '/redefinir-senha', component: RedefinirSenha },
+
 
   // ==========================================
   // ROTAS DO SISTEMA LOGADO (Com a Sidebar)
@@ -36,7 +39,7 @@ const routes = [
       { path: '/catalog', component: Catalog },
       { path: '/history', component: History },
       { path: '/movements', component: Movements },
-      { path: '/profile', component: Profile }
+      { path: '/profile', component: Profile },
     ]
   }
 ]

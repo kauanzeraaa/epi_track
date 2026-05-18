@@ -1,5 +1,4 @@
 <template>
- 
  <main>
   <div class="btn_voltar">
     <router-link to="/" class="voltar-link"><img src="../assets/arrow_left.png" alt="Voltar" class="voltar-icon" />Voltar</router-link>
@@ -15,67 +14,100 @@
       </div>
 
       <div class="login-right">
-        <div class="login-header">
-          <h2>LOGIN</h2>
-          <p>Acesse sua conta para continuar</p>
+        
+        <div v-if="!isRecovering" class="form-container">
+          <div class="login-header">
+            <h2>LOGIN</h2>
+            <p>Acesse sua conta para continuar</p>
+          </div>
+
+          <form @submit.prevent="handleLogin" class="login-form">
+            <div class="input-group">
+              <span class="input-icon">
+                <img src="../assets/iconmonstr-email.png" alt="Email Icon" draggable="false" class="custom-icon">
+              </span>
+              <input type="email" v-model="email" placeholder="E-mail" required />
+            </div>
+
+            <div class="input-group">
+              <span class="input-icon">
+                <img src="../assets/iconmonstr-lock.png" alt="Password Icon" draggable="false" class="custom-icon">
+              </span>
+              <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="Senha" required />
+              <button type="button" class="toggle-password" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'">
+                <img v-if="!showPassword" src="../assets/show-password.png" alt="Mostrar senha" class="password-icon" draggable="false">
+                <img v-else src="../assets/hide-password.png" alt="Ocultar senha" class="password-icon" draggable="false">
+              </button>
+            </div>
+
+            <div class="forgot-password">
+              <a href="#" @click.prevent="isRecovering = true">Esqueceu a senha?</a>
+            </div>
+
+            <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
+
+            <button type="submit" class="submit-btn" :disabled="isLoading">
+              {{ isLoading ? 'ENTRANDO...' : 'ENTRAR' }}
+            </button>
+          </form>
         </div>
 
-        <form @submit.prevent="handleLogin" class="login-form">
-          
-          <div class="input-group">
-            <span class="input-icon">
-              <img src="../assets/iconmonstr-email.png" alt="Email Icon" draggable="false" class="custom-icon">
-            </span>
-            <input type="email" v-model="email" placeholder="E-mail" required />
+        <div v-else class="form-container">
+          <div class="login-header">
+            <h2>RECUPERAR SENHA</h2>
+            <p>Enviaremos um link para o seu e-mail</p>
           </div>
 
-          <div class="input-group">
-            <span class="input-icon">
-              <img src="../assets/iconmonstr-lock.png" alt="Password Icon" draggable="false" class="custom-icon">
-            </span>
-            <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="Senha" required />
-            <button type="button" class="toggle-password" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'">
-              <img v-if="!showPassword" src="../assets/show-password.png" alt="Mostrar senha" class="password-icon" draggable="false">
-              <img v-else src="../assets/hide-password.png" alt="Ocultar senha" class="password-icon" draggable="false">
+          <form @submit.prevent="handleRecuperarSenha" class="login-form">
+            <div class="input-group">
+              <span class="input-icon">
+                <img src="../assets/iconmonstr-email.png" alt="Email Icon" draggable="false" class="custom-icon">
+              </span>
+              <input type="email" v-model="emailRecuperacao" placeholder="Seu e-mail cadastrado" required />
+            </div>
+
+            <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
+            <p v-if="successMsg" class="success-msg">{{ successMsg }}</p>
+
+            <button type="submit" class="submit-btn" :disabled="isLoading">
+              {{ isLoading ? 'ENVIANDO...' : 'ENVIAR LINK' }}
             </button>
-          </div>
-
-          <div class="forgot-password">
-            <a href="#">Esqueceu a senha?</a>
-          </div>
-
-          <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
-
-          <button @click="handleLogin" type="submit" class="submit-btn" :disabled="isLoading">
-            {{ isLoading ? 'ENTRANDO...' : 'ENTRAR' }}
-          </button>
-        </form>
+            
+            <div class="forgot-password">
+              <a href="#" @click.prevent="voltarAoLogin">Voltar ao Login</a>
+            </div>
+          </form>
+        </div>
 
       </div>
 
     </div>
   </section>
-  </main>
+ </main>
 </template>
 
 <script setup>
-
 import { ref } from 'vue'
 import { useSupabase } from '../composable/useSupabase'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../composable/useAuthStore'
 
-// Pega o cliente Supabase e o Vue Router já onfigurados
 const { supabase } = useSupabase()
 const router = useRouter()
 const { fetchUserProfile } = useAuthStore()
 
-// Variaveis que o Vue monitora automaticamente para atualizar a interface
+// Variáveis do Login
 const email = ref('')
 const password = ref('')
-const errorMsg = ref('')
-
 const showPassword = ref(false)
+
+// Variáveis da Recuperação de Senha
+const isRecovering = ref(false)
+const emailRecuperacao = ref('')
+const successMsg = ref('')
+
+// Variáveis Comuns
+const errorMsg = ref('')
 const isLoading = ref(false)
 
 const handleLogin = async () => {
@@ -92,13 +124,38 @@ const handleLogin = async () => {
     return
   }
 
-  // Antes de mudar de tela, busca o perfil no banco
   await fetchUserProfile()
 
-  router.push('/Dashboard') // Redireciona para o dashboard após login bem-sucedido
+  router.push('/Dashboard')
   isLoading.value = false
 }
 
+const handleRecuperarSenha = async () => {
+  isLoading.value = true
+  errorMsg.value = ''
+  successMsg.value = ''
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(emailRecuperacao.value, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    })
+
+    if (error) throw error
+
+    successMsg.value = 'Link enviado! Verifique sua caixa de entrada.'
+    emailRecuperacao.value = '' // Limpa o campo
+  } catch (error) {
+    errorMsg.value = 'Erro ao enviar e-mail: ' + error.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const voltarAoLogin = () => {
+  isRecovering.value = false
+  errorMsg.value = ''
+  successMsg.value = ''
+}
 </script>
 
 <style scoped>
@@ -127,7 +184,6 @@ main{
   overflow: hidden;
 }
 
-/* --- LADO ESQUERDO --- */
 .login-left {
   flex: 1;
   background-color: #2C3E50;
@@ -159,13 +215,18 @@ main{
   opacity: 0.8;
 }
 
-/* --- LADO DIREITO --- */
 .login-right {
   flex: 1;
   padding: 50px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .login-header {
@@ -201,7 +262,6 @@ main{
   transition: border-color 0.3s;
 }
 
-/* quando o usuário clica dentro do input, a borda fica laranja */
 .input-group:focus-within {
   border-color: #F39C12;
 }
@@ -217,7 +277,7 @@ main{
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
-    opacity: 0.5;
+  opacity: 0.5;
 }
 
 .input-group input {
@@ -262,6 +322,14 @@ main{
   margin-top: -8px;
 }
 
+.success-msg {
+  color: #27ae60;
+  font-size: 13px;
+  text-align: center;
+  margin-top: -8px;
+  font-weight: 600;
+}
+
 /* Links e Botão */
 .forgot-password {
   text-align: right;
@@ -302,24 +370,6 @@ main{
   transform: none;
 }
 
-/* rodapé com 'Solicitar Acesso' */
-.login-footer {
-  text-align: center;
-  margin-top: 30px;
-  font-size: 14px;
-  color: #666;
-}
-
-.login-footer a {
-  color: #F39C12;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.login-footer a:hover {
-  text-decoration: underline;
-}
-
 .btn_voltar{
   display: flex;
   align-items: center;
@@ -341,21 +391,18 @@ a {
   color: inherit;
 }
 
-/* --- RESPONSIVIDADE --- */
+/* Responsividade */
 @media (max-width: 768px) {
   .login-card {
     flex-direction: column;
     max-width: 450px;
   }
-
   .login-left {
     padding: 40px 20px;
   }
-
   .login-logo {
     width: 130px;
   }
-
   .login-right {
     padding: 40px 20px;
   }
