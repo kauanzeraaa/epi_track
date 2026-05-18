@@ -23,11 +23,14 @@
             <div class="alerts-toolbar">
                 <button class="tab-btn" :class="{ active: filtroStatus === 'Pendente' }"
                     @click="filtroStatus = 'Pendente'">
-                    🚨 Requer Atenção ({{ alertasPendentes.length }})
+                    <img :src="iconAtencao" alt="Atenção" class="tab-icon" />
+                    Requer Atenção ({{ alertasPendentes.length }})
                 </button>
+                
                 <button class="tab-btn" :class="{ active: filtroStatus === 'Resolvido' }"
                     @click="filtroStatus = 'Resolvido'">
-                    ✅ Resolvidos ({{ alertasResolvidos.length }})
+                    <img :src="iconResolvido" alt="Resolvido" class="tab-icon" />
+                    Resolvidos ({{ alertasResolvidos.length }})
                 </button>
             </div>
 
@@ -38,7 +41,7 @@
                 </div>
 
                 <div v-else-if="alertasFiltrados.length === 0" class="empty-state">
-                    <span class="empty-icon">{{ filtroStatus === 'Pendente' ? '🎉' : '📭' }}</span>
+                    <span class="empty-icon">{{ filtroStatus === 'Pendente' ? '' : '' }}</span>
                     <p>{{ filtroStatus === 'Pendente' ? 'Nenhum problema detectado!' : 'Nenhum alerta resolvido ainda.'
                         }}</p>
                     <span>{{ filtroStatus === 'Pendente' ? 'Estoque e validades estão em dia.' : 'O histórico de resoluções aparecerá aqui.'
@@ -48,9 +51,13 @@
                 <div v-else class="alerts-grid">
                     <div v-for="alerta in alertasFiltrados" :key="alerta.id" class="alert-card"
                         :class="getAlertClass(alerta)">
-                        <div class="alert-icon">
-                            {{ alerta.tipo_alerta === 'CA Vencido' ? '📅' : '📦' }}
-                        </div>
+                    <div class="alert-icon">
+                        <img
+                            :src="alerta.tipo_alerta === 'CA Vencido' ? iconCalendar : iconEntrega"
+                            alt="Ícone do alerta"
+                            class="img-alerta"
+                        />
+                    </div>
 
                         <div class="alert-content">
                             <div class="alert-header">
@@ -86,6 +93,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useSupabase } from '../composable/useSupabase'
+import iconCalendar from '../assets/calendar.png'
+import iconEntrega from '../assets/icons_sideBar/entrega_epis.png'
+import iconAtencao from '../assets/atencao.png'
+import iconResolvido from '../assets/aceitar.png'
 
 const { supabase } = useSupabase()
 
@@ -232,6 +243,17 @@ onMounted(() => fetchAlertas())
     cursor: pointer;
     transition: 0.2s;
     border-bottom: 3px solid transparent;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tab-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
 }
 
 .tab-btn:hover {
@@ -398,6 +420,12 @@ onMounted(() => fetchAlertas())
 
 .empty-state span {
     font-size: 14px;
+}
+
+.img-alerta {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
 }
 
 @keyframes fadeIn {
