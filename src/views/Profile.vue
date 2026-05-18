@@ -496,15 +496,19 @@ const salvarUsuario = async () => {
         let userId = form.id
 
         if (isCreating.value) {
-            const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-                email: form.email,
-                password: form.senha,
-                email_confirm: true
+            // Chama a Edge Function segura na nuvem
+            const { data, error: functionError } = await supabase.functions.invoke('criar-usuario', {
+                body: { email: form.email, password: form.senha }
             })
-            if (authError) throw new Error('Erro ao criar acesso: ' + authError.message)
 
-            userId = authData.user.id
+            if (functionError || data?.error) {
+                throw new Error('Erro ao criar acesso: ' + (functionError?.message || data?.error))
+            }
 
+            // Pega o ID que a Edge Function devolveu
+            userId = data.userId
+            
+            // O resto continua igualzinho:
             const { error: errorUsuario } = await supabase
                 .from('usuarios')
                 .upsert({ id: userId, ...payloadUsuario })
