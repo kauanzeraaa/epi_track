@@ -267,7 +267,7 @@ import { useAuthStore } from '../composable/useAuthStore';
 import { useSupabase } from '../composable/useSupabase';
 
 const { userProfile, currentUser, fetchUserProfile } = useAuthStore();
-const { supabase, supabaseAdmin } = useSupabase();
+const { supabase } = useSupabase();
 
 const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
 
@@ -379,11 +379,11 @@ const selecionarUsuario = async (usuario) => {
     form.perfil_acesso = usuario.perfil_acesso
     form.status = usuario.status
 
+    // Se for o próprio usuário logado, pega o e-mail dele. Se for outro, deixa em branco por segurança.
     if (usuario.id === currentUser.value?.id) {
         form.email = currentUser.value.email || ''
-    } else if (supabaseAdmin) {
-        const { data } = await supabaseAdmin.auth.admin.getUserById(usuario.id)
-        form.email = data.user?.email || ''
+    } else {
+        form.email = '' 
     }
 
     if (usuario.tipo_usuario === 'Funcionario' && usuario.funcionarios) {
@@ -423,10 +423,6 @@ const salvarUsuario = async () => {
             showNotification('As senhas não conferem.', 'error')
             return
         }
-        if (!supabaseAdmin) {
-            showNotification('Chave de serviço não configurada (VITE_SUPABASE_SERVICE_ROLE_KEY).', 'error')
-            return
-        }
     }
 
     if (!isCreating.value && form.nova_senha) {
@@ -443,7 +439,6 @@ const salvarUsuario = async () => {
     isSaving.value = true
 
     try {
-        // impede de inativar o usuário caso ele tenha EPIs sob seu controle
         if (!isCreating.value && isAdmin.value && form.status === 'Inativo'){
             const { count, error: countError} = await supabase
                 .from('entrega_epis')
@@ -456,7 +451,7 @@ const salvarUsuario = async () => {
             if (count > 0) {
                 showNotification(`Não é possível inativar o usuário. Ele possui ${count} EPI(s) pendente(s) de devolução.`, 'error')
                 isSaving.value = false
-                return // Cancela o salvamento !
+                return 
             }
         }
 
@@ -505,10 +500,8 @@ const salvarUsuario = async () => {
                 throw new Error('Erro ao criar acesso: ' + (functionError?.message || data?.error))
             }
 
-            // Pega o ID que a Edge Function devolveu
             userId = data.userId
             
-            // O resto continua igualzinho:
             const { error: errorUsuario } = await supabase
                 .from('usuarios')
                 .upsert({ id: userId, ...payloadUsuario })
@@ -522,21 +515,13 @@ const salvarUsuario = async () => {
 
             if (errorUsuario) throw new Error('Erro ao salvar dados: ' + errorUsuario.message)
 
-            // atualiza o e-mail no Auth do Supabase (Apenas Admin)
-            if (isAdmin.value && form.email) {
-                const { error: emailError } = await supabaseAdmin.auth.admin.updateUserById(form.id, { email: form.email })
-                if (emailError) throw new Error('Erro ao atualizar o e-mail de acesso: ' + emailError.message)
-            }
-
+            // Permite alterar a senha APENAS se o usuário estiver editando a si mesmo
             if (form.nova_senha) {
-                const ehProprioUsuario = form.id === currentUser.value?.id
-
-                if (ehProprioUsuario) {
+                if (form.id === currentUser.value?.id) {
                     const { error } = await supabase.auth.updateUser({ password: form.nova_senha })
                     if (error) throw new Error('Erro ao alterar senha: ' + error.message)
-                } else if (supabaseAdmin) {
-                    const { error } = await supabaseAdmin.auth.admin.updateUserById(form.id, { password: form.nova_senha })
-                    if (error) throw new Error('Erro ao redefinir senha: ' + error.message)
+                } else {
+                    throw new Error('Por segurança, apenas o próprio usuário pode alterar sua senha.')
                 }
             }
         }
@@ -578,7 +563,6 @@ const salvarUsuario = async () => {
         await fetchUsuarios()
         await fetchUserProfile()
 
-        // Garante que o avatar do Dashboard reflete a foto mesmo se a view não expõe foto_perfil
         if (publicImageUrl && userId === currentUser.value?.id && userProfile.value) {
             userProfile.value.foto_perfil = publicImageUrl
         }
@@ -592,7 +576,6 @@ const salvarUsuario = async () => {
         isSaving.value = false
     }
 }
-
 const handleFileChange = (event) => {
     const file = event.target.files[0]
     if (file) {
