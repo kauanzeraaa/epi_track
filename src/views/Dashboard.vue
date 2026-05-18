@@ -1,653 +1,253 @@
 <template>
   <div class="dashboard-page">
-
     <header class="page-header">
       <div class="header-text">
-        <p class="header-date">{{ currentDate }}</p>
-        <h1>Olá, {{ firstName }}!</h1>
-        <p class="header-subtitle" v-if="isAdmin">Aqui está o panorama geral do almoxarifado hoje.</p>
-        <p class="header-subtitle" v-else>Aqui está o resumo dos seus equipamentos de proteção.</p>
-      </div>
-
-      <div class="header-avatar">
-        <img v-if="userProfile?.foto_perfil" :src="userProfile.foto_perfil" alt="Foto de Perfil" />
-        <div v-else class="avatar-initials">{{ userInitials }}</div>
-        <span class="avatar-badge online"></span>
+        <h1>Dashboard</h1>
+        <p>Visão geral de segurança e estoque.</p>
       </div>
     </header>
 
-    <!-- ADMIN -->
-    <template v-if="isAdmin">
-
-      <section class="stats-grid">
-
-        <div class="stat-card">
-          <div class="stat-accent blue"></div>
-          <div class="stat-body">
-            <div class="stat-top">
-              <div class="stat-icon blue"><img src="../assets/cards/inventory.png" alt="Estoque" /></div>
-              <span class="stat-chip neutral">Itens</span>
-            </div>
-            <p class="stat-value">{{ totalItens }}</p>
-            <p class="stat-label">Total em Estoque</p>
-          </div>
+    <div class="summary-cards">
+      <div class="card card-alerts">
+        <div class="card-icon"><img src="../assets/icons_sideBar/alerta_epis.png" alt="" class="img_cards"></div>
+        <div class="card-info">
+          <h3>Alertas Pendentes</h3>
+          <p class="card-value">{{ totalAlertas }}</p>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-accent orange"></div>
-          <div class="stat-body">
-            <div class="stat-top">
-              <div class="stat-icon orange"><img src="../assets/cards/alert.png" alt="Alerta" /></div>
-              <span class="stat-chip warning">Atenção</span>
-            </div>
-            <p class="stat-value">{{ estoqueBaixo }}</p>
-            <p class="stat-label">Estoque Baixo</p>
-          </div>
+      </div>
+      <div class="card card-stock">
+        <div class="card-icon"><img src="../assets/icons_sideBar/entrega_epis.png" alt="" class="img_cards"></div>
+        <div class="card-info">
+          <h3>Total de EPIs no Catálogo</h3>
+          <p class="card-value">{{ totalEpis }}</p>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-accent red"></div>
-          <div class="stat-body">
-            <div class="stat-top">
-              <div class="stat-icon red"><img src="../assets/cards/check-shield.png" alt="CA" /></div>
-              <span class="stat-chip danger">Urgente</span>
-            </div>
-            <p class="stat-value">{{ caVencendo }}</p>
-            <p class="stat-label">CA Vencendo</p>
-          </div>
+      </div>
+      <div class="card card-users">
+        <div class="card-icon"><img src="../assets/icons_sideBar/perfil_user.png" alt="" class="img_cards"></div>
+        <div class="card-info">
+          <h3>Usuários Cadastrados</h3>
+          <p class="card-value">{{ totalUsuarios }}</p>
         </div>
+      </div>
+    </div>
 
-        <div class="stat-card">
-          <div class="stat-accent green"></div>
-          <div class="stat-body">
-            <div class="stat-top">
-              <div class="stat-icon green"><img src="../assets/cards/deliver.png" alt="Entregas" /></div>
-              <span class="stat-chip positive">Hoje</span>
-            </div>
-            <p class="stat-value">{{  entregasHoje }}</p>
-            <p class="stat-label">Entregas Realizadas Hoje</p>
-          </div>
-        </div>
-
-      </section>
-
-      <div class="content-card">
-        <div class="card-header">
-          <div class="card-header-left">
-            <img src="../assets/cards/file-report.png" alt="" class="card-header-icon" />
-            <h3>Últimas Movimentações</h3>
-          </div>
-          <button class="btn-link">Ver todas →</button>
-        </div>
-        <div class="empty-state">
-          <img src="../assets/cards/deliver.png" alt="" class="empty-icon" />
-          <p>Nenhuma movimentação registrada.</p>
-          <span>Entregas e devoluções aparecerão aqui.</span>
+    <div class="charts-layout">
+      
+      <div class="chart-panel">
+        <h2>Distribuição de Usuários</h2>
+        <div class="canvas-wrapper">
+          <canvas id="graficoUsuarios"></canvas>
         </div>
       </div>
 
-    </template>
-
-    <!-- FUNCIONÁRIO -->
-    <template v-else>
-
-      <section class="stats-grid">
-
-        <div class="stat-card">
-          <div class="stat-accent green"></div>
-          <div class="stat-body">
-            <div class="stat-top">
-              <div class="stat-icon green"><img src="../assets/cards/check-shield.png" alt="EPIs" /></div>
-              <span class="stat-chip positive">Ativo</span>
-            </div>
-            <p class="stat-value">{{ meusEpisAtivos }}</p>
-            <p class="stat-label">Meus EPIs Ativos</p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-accent orange"></div>
-          <div class="stat-body">
-            <div class="stat-top">
-              <div class="stat-icon orange"><img src="../assets/cards/alert.png" alt="Trocas" /></div>
-              <span class="stat-chip warning">Atenção</span>
-            </div>
-            <p class="stat-value">{{ trocasProximas }}</p>
-            <p class="stat-label">Trocas Próximas</p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-accent blue"></div>
-          <div class="stat-body">
-            <div class="stat-top">
-              <div class="stat-icon blue"><img src="../assets/cards/economy.png" alt="Conformidade" /></div>
-              <span class="stat-chip positive">OK</span>
-            </div>
-            <p class="stat-value">{{ conformidadeNR6}}</p>
-            <p class="stat-label">Conformidade NR-6</p>
-          </div>
-        </div>
-
-      </section>
-
-      <div class="content-card">
-        <div class="card-header">
-          <div class="card-header-left">
-            <img src="../assets/cards/check-shield.png" alt="" class="card-header-icon" />
-            <h3>Meus Equipamentos</h3>
-          </div>
-        </div>
-        <div class="empty-state">
-          <img src="../assets/cards/check-shield.png" alt="" class="empty-icon" />
-          <p>Seus EPIs aparecerão aqui.</p>
-          <span>Equipamentos entregues serão listados nesta seção.</span>
+      <div class="chart-panel">
+        <h2>EPIs com Menor Estoque (Atenção)</h2>
+        <div class="canvas-wrapper">
+          <canvas id="graficoEstoque"></canvas>
         </div>
       </div>
 
-    </template>
-
+    </div>
   </div>
 </template>
 
 <script setup>
-
-// ===========================
-// Visão Geral do Sistema
-// ===========================
-
-import { useAuthStore } from '../composable/useAuthStore'
+import { ref, onMounted } from 'vue'
+import Chart from 'chart.js/auto'
 import { useSupabase } from '../composable/useSupabase'
-import { ref, reactive, computed, onMounted } from 'vue'
 
-const { userProfile } = useAuthStore()
 const { supabase } = useSupabase()
 
-const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
+// variáveis para os cards
+const totalAlertas = ref(0)
+const totalEpis = ref(0)
+const totalUsuarios = ref(0)
 
-const firstName = computed(() => {
-  const nome = userProfile.value?.nome
-  if (!nome) return 'Carregando'
-  return nome.split(' ')[0]
-})
+// Referências para destruir os gráficos antigos antes de atualizar
+let chartUsuarios = null
+let chartEstoque = null
 
-const userInitials = computed(() => {
-  const nome = userProfile.value?.nome
-  if (!nome) return '?'
-  const parts = nome.trim().split(' ')
-  return parts.length >= 2
-    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-    : parts[0][0].toUpperCase()
-})
+const carregarDados = async () => {
+  try {
+    // busca contagens rápidas para os Cards
+    const { count: countAlertas } = await supabase.from('alertas').select('*', { count: 'exact', head: true }).eq('status', 'Pendente')
+    const { count: countEpis } = await supabase.from('epis').select('*', { count: 'exact', head: true })
+    const { count: countUsers } = await supabase.from('usuarios').select('*', { count: 'exact', head: true })
+    
+    totalAlertas.value = countAlertas || 0
+    totalEpis.value = countEpis || 0
+    totalUsuarios.value = countUsers || 0
 
-const currentDate = computed(() => {
-  return new Date().toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-})
+    // monta o Gráfico de Pizza (Usuários)
+    await renderizarGraficoUsuarios()
 
-const epis = ref([])
-const isLoadingList = ref(false)
+    // monta o Gráfico de Barras (Estoque Crítico)
+    await renderizarGraficoEstoque()
 
-// ===========================
-// Visão do Administrador
-// ===========================
-
-// FUnção para bucar os EPIs
-const fetchEpis = async () => {
-  isLoadingList.value = true
-
-  try{
-    const { data, error } = await supabase
-      .from('epis')
-      .select('*')
-
-      if (error) throw error
-
-      epis.value = data
-  }catch(error){
-    console.error('Erro ao buscar EPIs:', error)
-  }finally{
-    isLoadingList.value = false
+  } catch (error) {
+    console.error("Erro ao carregar dashboard:", error)
   }
+}
+
+const renderizarGraficoUsuarios = async () => {
+  // busca os dados
+  const { data } = await supabase.from('usuarios').select('tipo_usuario')
+  
+  if (!data) return
+
+  // agrupa e conta quantos de cada tipo existem
+  const contagem = { 'Aluno': 0, 'Funcionario': 0, 'Visitante': 0 }
+  data.forEach(user => {
+    if (contagem[user.tipo_usuario] !== undefined) {
+      contagem[user.tipo_usuario]++
+    }
+  })
+
+  // transforma em arrays simples, como ensinado no material
+  const labels = Object.keys(contagem)
+  const valores = Object.values(contagem)
+
+  const ctx = document.getElementById('graficoUsuarios').getContext('2d')
+  
+  // limpa antes de redesenhar
+  if (chartUsuarios) chartUsuarios.destroy()
+
+  chartUsuarios = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Quantidade',
+        data: valores,
+        backgroundColor: ['#27ae60', '#2c3e50', '#f39c12'],
+        borderWidth: 2
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  })
+}
+
+const renderizarGraficoEstoque = async () => {
+  // busca os 5 EPIs com o menor estoque atual
+  const { data } = await supabase
+    .from('epis')
+    .select('nome, estoque_atual')
+    .order('estoque_atual', { ascending: true })
+    .limit(5)
+
+  if (!data) return
+
+  // separa os nomes e os valores
+  const nomesEpi = data.map(item => item.nome)
+  const quantidades = data.map(item => item.estoque_atual)
+
+  const ctx = document.getElementById('graficoEstoque').getContext('2d')
+  
+  if (chartEstoque) chartEstoque.destroy()
+
+  chartEstoque = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: nomesEpi,
+      datasets: [{
+        label: 'Unidades em Estoque',
+        data: quantidades,
+        backgroundColor: '#3B82F6', // azul claro, conforme documentação
+        borderColor: '#1E40AF',
+        borderWidth: 1
+      }]
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true } }
+    }
+  })
 }
 
 onMounted(() => {
-    fetchEpis()
-    fetchEntregas()
-})
-
-// variavel para armazenar o total de epis cadastrados no sistem
-const totalItens = computed(() => epis.value.length)
-
-// variavel para armazenar a quantidade de epis em estoque baixo
-const estoqueBaixo = computed(() => {
-  return epis.value.filter(epi => epi.estoque_atual <= epi.estoque_minimo).length
-})
-
-// variavel para armazenar os epis com CA a vencer (30 dias)
-const caVencendo = computed(() => {
-  const hoje = new Date()
-  // variavel para armazenar a data atual + 30 dias (para calcular os EPIs com CA vencendo em breve)
-  const trintaDias = new Date(hoje.getTime() + (30 * 24 * 60 * 60 * 1000))
-
-  return epis.value.filter(epi => {
-    if (!epi.validade_ca) return false
-    const dataValidade = new Date(epi.validade_ca)
-    return dataValidade <= trintaDias
-  }).length
-})
-
-// armazena as entregas
-const entregas = ref([])
-
-// função select para retornar todas as entregas
-const fetchEntregas = async () => {
-  try{
-    const { data, error } = await supabase
-      .from('entrega_epis')
-      .select('*')
+  carregarDados()
   
-    if (error) throw error
-  
-    entregas.value = data
-  } catch(error){
-    console.error('Erro ao buscar entregas:', error)
-  }
-}
-
-// calcula quantas entregas foram feitas HOJE
-const entregasHoje = computed (() => {
-  const dataHoje = new Date().toISOString().split('T')[0] // formata a data para YYYY-MM-DD
-
-  return entregas.value.filter(entrega => {
-    if (!entrega.created_at) return false
-
-    const dataDaEntrega = entrega.created_at.split('T')[0] // formata a data da entrega para YYYY-MM-DD
-
-    return dataDaEntrega === dataHoje
-  }).length
+  // usar setInterval atualiza a tela a cada 10 segundos
+  // setInterval(carregarDados, 10000)
 })
-
-// ===========================
-// Visão do Funcionário
-// ===========================
-
-// variavel para armazenar os EPIs ativos do funcionario (ainda nao devolvidos)
-const meusEpisAtivos = computed (() => {
-  return entregas.value.filter(entregas => !entregas.data_devolucao).length
-})
-
-// variavel para armazenar a quantidade de EPIs que precisam ser trocados em 30 dias
-const trocasProximas = computed(() => {
-  const hoje = new Date()
-  const trintaDias = new Date(hoje.getTime() + (30 * 24 * 60 * 60 * 1000))
-
-  return entregas.value.filter(entrega => {
-    // se nao tem nenhuma data de devolução estipulada, ignora
-    if (!entrega.data_troca || !entrega.data_devolucao) return false
-
-    const dataTroca = new Date(entrega.data_troca)
-    return dataTroca <= trintaDias
-  }).length
-})
-
-// variavel para armazenar a conformidade nr-6
-const conformidadeNR6 = computed(() => {
-  if(meusEpisAtivos.value === 0) return '100%'
-
-  const hoje = new Date()
-
-  const episVencidos = entregas.value.filter(entrega => {
-    if (!entrega.data_troca || !entrega.data_devolucao) return false
-
-    return new Date(entrega.data_troca) < hoje
-  }).length
-
-  if (episVencidos === 0) return '100%'
-
-  // calcula a porcentagem (ativos - vencidos) / ativos * 100
-  const taxa = ((meusEpisAtivos.value - episVencidos) / meusEpisAtivos.value) * 100
-  return `${Math.round(taxa)}%`
-})
-
-
-
 </script>
 
 <style scoped>
-/* ─── Página ─────────────────────────────────── */
-.dashboard-page {
-  animation: fadeIn 0.4s ease-out;
-}
+.dashboard-page { animation: fadeIn 0.4s ease-out; }
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-size: 26px; font-weight: 700; color: #1a2533; margin-bottom: 6px; }
+.page-header p { font-size: 14px; color: #8896a3; }
 
-/* ─── Header ─────────────────────────────────── */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 36px;
-}
-
-.header-date {
-  font-size: 13px;
-  color: #a0aab4;
-  text-transform: capitalize;
-  margin-bottom: 6px;
-  letter-spacing: 0.3px;
-}
-
-.page-header h1 {
-  font-size: 26px;
-  font-weight: 700;
-  color: #1a2533;
-  margin-bottom: 6px;
-}
-
-.header-subtitle {
-  font-size: 14px;
-  color: #8896a3;
-}
-
-.header-avatar {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.header-avatar img,
-.avatar-initials {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.avatar-initials {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #2C3E50, #4a6278);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.avatar-badge {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-}
-
-.avatar-badge.online {
-  background: #2ecc71;
-}
-
-/* ─── Grid de Stats ───────────────────────────── */
-.stats-grid {
+/* Cards de Resumo */
+.summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
-
-.stat-card {
+.card {
   background: #fff;
-  border-radius: 16px;
-  display: flex;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-  border: 1px solid rgba(0,0,0,0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.09);
-}
-
-.stat-accent {
-  width: 5px;
-  flex-shrink: 0;
-  border-radius: 0;
-}
-
-.stat-body {
-  padding: 20px 20px 20px 18px;
-  flex: 1;
-}
-
-.stat-top {
+  border-radius: 12px;
+  padding: 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
+  gap: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  border: 1px solid #eef2f5;
+  transition: transform 0.2s;
 }
-
-.stat-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+.card:hover { transform: translateY(-3px); }
+.card-icon {
+  font-size: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #f8fafc;
+  border-radius: 12px;
 }
 
-.stat-icon img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+.img_cards{
+  width: 50px;
+
 }
 
-.stat-chip {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-  letter-spacing: 0.3px;
-}
+.card-info h3 { font-size: 12px; text-transform: uppercase; color: #8896a3; margin: 0 0 4px; font-weight: 700; }
+.card-value { font-size: 28px; font-weight: 800; color: #1a2533; margin: 0; }
 
-.stat-value {
-  font-size: 30px;
-  font-weight: 800;
-  color: #1a2533;
-  line-height: 1;
-  margin-bottom: 6px;
-}
-
-.stat-label {
-  font-size: 13px;
-  color: #8896a3;
-  font-weight: 500;
-}
-
-/* ─── Cores temáticas ─────────────────────────── */
-.blue  { background: rgba(52, 152, 219, 0.12); }
-.orange { background: rgba(243, 156, 18, 0.12); }
-.red   { background: rgba(231, 76, 60, 0.12); }
-.green { background: rgba(46, 204, 113, 0.12); }
-.purple { background: rgba(142, 68, 173, 0.12); }
-
-.stat-accent.blue   { background: #3498db; }
-.stat-accent.orange { background: #f39c12; }
-.stat-accent.red    { background: #e74c3c; }
-.stat-accent.green  { background: #2ecc71; }
-
-.stat-chip.neutral  { background: #eef2f5; color: #5a6a78; }
-.stat-chip.warning  { background: rgba(243,156,18,0.15); color: #c07d00; }
-.stat-chip.danger   { background: rgba(231,76,60,0.12); color: #c0392b; }
-.stat-chip.positive { background: rgba(46,204,113,0.15); color: #1a9950; }
-
-/* ─── Grid inferior (admin) ───────────────────── */
-.bottom-grid {
+/* Gráficos */
+.charts-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
 }
-
-/* ─── Card de conteúdo ────────────────────────── */
-.content-card {
+.chart-panel {
   background: #fff;
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.05);
   border: 1px solid rgba(0,0,0,0.04);
 }
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f3f6;
-}
-
-.card-header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.card-header-icon {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  opacity: 0.6;
-}
-
-.card-header h3 {
+.chart-panel h2 {
   font-size: 16px;
   font-weight: 700;
   color: #1a2533;
-}
-
-.btn-link {
-  background: none;
-  border: none;
-  color: #f39c12;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.15s;
-}
-
-.btn-link:hover { color: #c07d00; }
-
-/* ─── Empty State ─────────────────────────────── */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 200px;
-  background: #fafbfc;
-  border-radius: 10px;
-  border: 1.5px dashed #e0e6eb;
-  padding: 32px;
   text-align: center;
+  margin-bottom: 20px;
 }
 
-.empty-icon {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  opacity: 0.25;
-  margin-bottom: 4px;
+/* corrige o erro de distorção que a professora disse na documentacao */
+.canvas-wrapper {
+  position: relative;
+  height: 300px; /* defin limite de altura para não quebrar a tela */
+  width: 100%;
 }
 
-.empty-state p {
-  font-size: 14px;
-  font-weight: 600;
-  color: #5a6a78;
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.empty-state span {
-  font-size: 12px;
-  color: #aab4bc;
-}
-
-/* ─── Acesso Rápido ───────────────────────────── */
-.quick-card { min-height: unset; }
-
-.quick-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.quick-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 8px;
-  border-radius: 12px;
-  background: #f7f9fb;
-  text-decoration: none;
-  transition: background 0.2s, transform 0.2s;
-  border: 1px solid transparent;
-}
-
-.quick-item:hover {
-  background: #eef2f8;
-  transform: translateY(-2px);
-  border-color: rgba(0,0,0,0.05);
-}
-
-.quick-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.quick-icon img {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-}
-
-.quick-item span {
-  font-size: 12px;
-  font-weight: 600;
-  color: #4a5a6a;
-}
-
-.quick-icon.purple { background: rgba(142, 68, 173, 0.12); }
-
-/* ─── Animação ────────────────────────────────── */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ─── Responsivo ──────────────────────────────── */
-@media (max-width: 900px) {
-  .bottom-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .stat-value {
-    font-size: 24px;
-  }
+@media (max-width: 768px) {
+  .charts-layout { grid-template-columns: 1fr; }
 }
 </style>
