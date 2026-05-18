@@ -51,9 +51,6 @@
           </button>
         </form>
 
-        <div class="login-footer">
-          <p>Não tem uma conta? <router-link to="/">Solicitar Acesso</router-link></p>
-        </div>
       </div>
 
     </div>
