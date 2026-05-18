@@ -154,7 +154,7 @@
                     <div class="form-section">
                         <div class="input-group">
                             <label>E-mail</label>
-                            <input v-model="form.email" type="email" :required="isCreating" :disabled="!isCreating" placeholder="usuario@exemplo.com" />
+                            <input v-model="form.email" type="email" :required="isCreating" :disabled="!isAdmin && !isCreating" placeholder="usuario@exemplo.com" />
                         </div>
 
                         <template v-if="isCreating">
@@ -337,7 +337,9 @@ const fetchUsuarios = async () => {
             query = query.eq('id', userProfile.value.id)
         }
 
-        const { data, error } = await query.order('nome')
+        const { data, error } = await query
+            .order('status', { ascending: true })
+            .order('nome', { ascending: true })
         if (error) throw error
 
         usuarios.value = data
@@ -515,6 +517,12 @@ const salvarUsuario = async () => {
                 .eq('id', form.id)
 
             if (errorUsuario) throw new Error('Erro ao salvar dados: ' + errorUsuario.message)
+
+            // atualiza o e-mail no Auth do Supabase (Apenas Admin)
+            if (isAdmin.value && form.email) {
+                const { error: emailError } = await supabaseAdmin.auth.admin.updateUserById(form.id, { email: form.email })
+                if (emailError) throw new Error('Erro ao atualizar o e-mail de acesso: ' + emailError.message)
+            }
 
             if (form.nova_senha) {
                 const ehProprioUsuario = form.id === currentUser.value?.id
