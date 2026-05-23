@@ -52,7 +52,7 @@
             <div class="epi-image-wrap">
               <img v-if="epi.foto_epi" :src="epi.foto_epi" :alt="epi.nome" class="epi-photo" />
               <div v-else class="epi-no-photo">
-                <span class="icon-camera">📷</span>
+                <span class="icon-camera"><img src="../assets/digital-camera.png" alt="Foto EPI"></span>
                 <p>Sem foto</p>
               </div>
               
