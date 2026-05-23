@@ -6,6 +6,15 @@
         <p v-if="isAdmin">Visão geral de segurança e estoque.</p>
         <p v-else>Resumo das suas movimentações de segurança.</p>
       </div>
+
+      <div class="user-profile-widget" v-if="userProfile">
+        <div v-if="userProfile.foto_perfil" class="user-avatar image-avatar">
+          <img :src="userProfile.foto_perfil" alt="Foto de perfil" />
+        </div>
+        <div v-else class="user-avatar text-avatar">
+          {{ iniciaisUsuario }}
+        </div>
+      </div>
     </header>
 
     <div class="summary-cards">
@@ -75,6 +84,22 @@ const { userProfile } = useAuthStore()
 
 // Verifica se é Admin
 const isAdmin = computed(() => userProfile.value?.perfil_acesso === 'Administrador')
+
+// extrai as duas primeiras letras do nome do usuario logado
+const iniciaisUsuario = computed(() => {
+  if (!userProfile.value?.nome) return '?'
+  
+  // divide o nome pelos espaços
+  const partesNome = userProfile.value.nome.trim().split(' ')
+  
+  // se tiver 2 ou mais nomes
+  if (partesNome.length >= 2) {
+    return (partesNome[0][0] + partesNome[1][0]).toUpperCase()
+  }
+  
+  // se tiver só um nome
+  return partesNome[0].substring(0, 2).toUpperCase()
+})
 
 // Variáveis Admin
 const totalAlertas = ref(0)
@@ -208,6 +233,48 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-header h1 { font-size: 26px; font-weight: 700; color: #1a2533; margin-bottom: 6px; }
+.page-header p { font-size: 14px; color: #8896a3; margin: 0; }
+
+.user-profile-widget {
+  display: flex;
+  align-items: center;
+}
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  border: 2px solid #fff;
+}
+.image-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.text-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3498db, #2c3e50);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
 .dashboard-page { animation: fadeIn 0.4s ease-out; }
 .page-header { margin-bottom: 24px; }
 .page-header h1 { font-size: 26px; font-weight: 700; color: #1a2533; margin-bottom: 6px; }
