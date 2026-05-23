@@ -6,7 +6,7 @@
       <div class="texts">
         <h1 class="tittle">Sistema de Gestão de EPIs</h1>
         <h2 class="caption">Elimine o Controle em Papel e garanta a conformidade e a eficiência na gestão de EPIs com o EPI TRACK</h2>
-        <router-link class="button" to="/">SOLICITAR ACESSO</router-link>
+        <router-link class="button" to="/login">ACESSAR SISTEMA</router-link>
       </div>
     </div>
   
