@@ -22,7 +22,7 @@
       <div class="card" :class="isAdmin ? 'card-alerts' : 'card-active'">
         <div class="card-icon">
           <img v-if="isAdmin" src="../assets/icons_sideBar/alerta_epis.png" alt="" class="img_cards">
-          <span v-else style="font-size: 28px;">👷</span>
+          <span v-else ><img src="../assets/protective-equipement.png" alt="" class="img_cards"></span>
         </div>
         <div class="card-info">
           <h3>{{ isAdmin ? 'Alertas Pendentes' : 'EPIs em Uso' }}</h3>
@@ -33,7 +33,7 @@
       <div class="card" :class="isAdmin ? 'card-stock' : 'card-returned'">
         <div class="card-icon">
           <img v-if="isAdmin" src="../assets/icons_sideBar/entrega_epis.png" alt="" class="img_cards">
-          <span v-else style="font-size: 28px;">✅</span>
+          <span v-else ><img src="../assets/aceitar.png" alt="" class="img_cards"></span>
         </div>
         <div class="card-info">
           <h3>{{ isAdmin ? 'Total no Catálogo' : 'EPIs Devolvidos' }}</h3>
@@ -44,7 +44,7 @@
       <div class="card" :class="isAdmin ? 'card-users' : 'card-history'">
         <div class="card-icon">
           <img v-if="isAdmin" src="../assets/icons_sideBar/perfil_user.png" alt="" class="img_cards">
-          <span v-else style="font-size: 28px;">📄</span>
+          <span v-else ><img src="../assets/clipboard.png" alt="" class="img_cards"></span>
         </div>
         <div class="card-info">
           <h3>{{ isAdmin ? 'Usuários Cadastrados' : 'Total de Retiradas' }}</h3>
