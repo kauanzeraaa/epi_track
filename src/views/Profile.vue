@@ -191,16 +191,16 @@
                         <div class="input-row">
                             <div class="input-group">
                                 <label>Matrícula</label>
-                                <input v-model="form.func_matricula" type="text" required />
+                                <input v-model="form.func_matricula" type="text" required :disabled="!isAdmin" />
                             </div>
                             <div class="input-group">
                                 <label>Departamento</label>
-                                <input v-model="form.func_departamento" type="text" required />
+                                <input v-model="form.func_departamento" type="text" required :disabled="!isAdmin" />
                             </div>
                         </div>
                         <div class="input-group">
                             <label>Cargo</label>
-                            <input v-model="form.func_cargo" type="text" required />
+                            <input v-model="form.func_cargo" type="text" required :disabled="!isAdmin" />
                         </div>
                     </div>
 
@@ -209,16 +209,16 @@
                         <div class="input-row">
                             <div class="input-group">
                                 <label>Matrícula Acadêmica</label>
-                                <input v-model="form.aluno_matricula" type="text" required />
+                                <input v-model="form.aluno_matricula" type="text" required :disabled="!isAdmin" />
                             </div>
                             <div class="input-group">
                                 <label>Turma</label>
-                                <input v-model="form.aluno_turma" type="text" required />
+                                <input v-model="form.aluno_turma" type="text" required :disabled="!isAdmin" />
                             </div>
                         </div>
                         <div class="input-group">
                             <label>Curso</label>
-                            <input v-model="form.aluno_curso" type="text" required />
+                            <input v-model="form.aluno_curso" type="text" required :disabled="!isAdmin" />
                         </div>
                     </div>
 
@@ -227,16 +227,16 @@
                         <div class="input-row">
                             <div class="input-group">
                                 <label>CPF</label>
-                                <input v-model="form.vis_cpf" type="text" required />
+                                <input v-model="form.vis_cpf" type="text" required :disabled="!isAdmin" />
                             </div>
                             <div class="input-group">
                                 <label>Empresa de Origem</label>
-                                <input v-model="form.vis_empresa" type="text" />
+                                <input v-model="form.vis_empresa" type="text" :disabled="!isAdmin" />
                             </div>
                         </div>
                         <div class="input-group">
                             <label>Motivo da Visita</label>
-                            <input v-model="form.vis_motivo" type="text" required />
+                            <input v-model="form.vis_motivo" type="text" required :disabled="!isAdmin" />
                         </div>
                     </div>
 
