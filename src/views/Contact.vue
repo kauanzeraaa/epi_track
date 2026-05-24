@@ -20,7 +20,7 @@
         <div class="services-card">
           <div class="card-column line-right">
             <h3 class="orange-text">
-              <span class="icon">👤</span> Para Você
+              <span class="icon"><img src="../assets/icons_sideBar/perfil_user.png" alt="" class="icon-img"></span> Para Você
             </h3>
             <div class="card-item">
               <h4>Formação Educacional</h4>
@@ -34,7 +34,7 @@
 
           <div class="card-column">
             <h3 class="orange-text">
-              <span class="icon">🏢</span> Para Empresas
+              <span class="icon"><img src="../assets/business-and-trade.png" alt="" class="icon-img"></span> Para Empresas
             </h3>
             <div class="card-item">
               <h4>Formação Corporativa</h4>
@@ -56,7 +56,9 @@
 
         <div class="contact-info-list">
           <div class="contact-item">
-            <span class="contact-icon">📍</span>
+            <span class="contact-icon">
+              <img src="../assets/black-placeholder-variant.png" alt="Ícone de Endereço" class="icon-img">
+            </span>
             <div>
               <strong>Endereço (Unidade Norte):</strong>
               <p>Rua Arno Waldemar Dohler, 957<br>Zona Industrial Norte, Joinville - SC, 89219-510</p>
@@ -64,7 +66,9 @@
           </div>
 
           <div class="contact-item">
-            <span class="contact-icon">📞</span>
+            <span class="contact-icon">
+              <img src="../assets/telephone-handle-silhouette.png" alt="Ícone de Telefone" class="icon-img">
+            </span>
             <div>
               <strong>Telefone Central:</strong>
               <p>(47) 3441-7700</p>
@@ -72,7 +76,9 @@
           </div>
 
           <div class="contact-item">
-            <span class="contact-icon">💬</span>
+            <span class="contact-icon">
+              <img src="../assets/chat.png" alt="Ícone de Chat" class="icon-img">
+            </span>
             <div>
               <strong>Atendimento FIESC/SENAI:</strong>
               <p>0800 048 1212</p>
@@ -80,7 +86,9 @@
           </div>
 
           <div class="contact-item">
-            <span class="contact-icon">🕒</span>
+            <span class="contact-icon">
+              <img src="../assets/clock.png" alt="Ícone de Horário" class="icon-img">
+            </span>
             <div>
               <strong>Horário de Atendimento:</strong>
               <p>Segunda a Sexta-feira, das 08h às 22h</p>
@@ -127,7 +135,7 @@ export default {
 </script>
 
 <style scoped>
-/* --- CONTAINER PRINCIPAL --- */
+/* Container principal */
 .contact-container {
   width: 100%;
   max-width: 1200px;
@@ -139,7 +147,7 @@ export default {
   box-sizing: border-box;
 }
 
-/* --- SEÇÃO DO TOPO (Título e Imagem) --- */
+/* Título e Imagem */
 .top-section {
   text-align: center;
   margin-bottom: 50px;
@@ -166,7 +174,7 @@ export default {
   object-fit: cover;
 }
 
-/* --- SEÇÃO DE INFORMAÇÕES (Colunas) --- */
+/* Colunas */
 .info-section {
   display: flex;
   gap: 60px;
@@ -192,7 +200,7 @@ h2 {
   line-height: 1.5;
 }
 
-/* --- CARD BRANCO DE SERVIÇOS --- */
+/* CARD BRANCO DE SERVIÇOS */
 .services-card {
   background-color: #FFFFFF;
   border-radius: 16px;
@@ -273,7 +281,7 @@ h2 {
   line-height: 1.4;
 }
 
-/* --- RODAPÉ (FOOTER) --- */
+/* RODAPÉ (FOOTER) */
 .footer {
   width: 100%;
   background-color: #2C3E50;
@@ -337,7 +345,13 @@ h2 {
   opacity: 0.7;
 }
 
-/* --- RESPONSIVIDADE --- */
+.icon-img{
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* RESPONSIVIDADE */
 @media (max-width: 900px) {
   .info-section {
     flex-direction: column; /* Empilha as colunas principal */
