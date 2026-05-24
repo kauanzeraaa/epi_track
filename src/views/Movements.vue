@@ -113,9 +113,9 @@
 
           <div class="form-section">
             <div class="input-group">
-              <label>Colaborador</label>
+              <label>Usuário</label>
               <select v-model="form.usuario_id" required :disabled="isLoadingDados">
-                <option value="" disabled>Selecione um funcionário...</option>
+                <option value="" disabled>Selecione um usuário...</option>
                 <option v-for="user in usuarios" :key="user.id" :value="user.id">
                   {{ user.nome }} — ({{ user.tipo_usuario }})
                 </option>
