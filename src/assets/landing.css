@@ -1,0 +1,240 @@
+/* =========================================================
+   EPI TRACK — Landing Page
+   Design tokens + utilitários compartilhados entre as seções
+   ========================================================= */
+
+.landing {
+  /* ---- Paleta ---- */
+  --lp-navy-950: #0a1422;
+  --lp-navy-900: #0e1b2c;
+  --lp-navy-800: #142539;
+  --lp-navy-700: #1d3147;
+  --lp-navy: #2c3e50;
+  --lp-orange: #f39c12;
+  --lp-orange-soft: #f5b041;
+  --lp-orange-deep: #e67e22;
+  --lp-ice: #f7f9fc;
+  --lp-white: #ffffff;
+  --lp-ink: #182634;
+  --lp-muted: #5f6e7e;
+  --lp-muted-dark: #93a4b8;
+  --lp-line: rgba(44, 62, 80, 0.1);
+  --lp-line-dark: rgba(255, 255, 255, 0.09);
+
+  /* ---- Gradientes ---- */
+  --lp-grad-orange: linear-gradient(135deg, #f5b041 0%, #f39c12 50%, #e67e22 100%);
+  --lp-grad-navy: linear-gradient(180deg, #142539 0%, #0e1b2c 100%);
+  --lp-grad-text: linear-gradient(110deg, #f5b041 10%, #f39c12 45%, #ffd28a 90%);
+
+  /* ---- Superfícies ---- */
+  --lp-radius-lg: 24px;
+  --lp-radius: 18px;
+  --lp-radius-sm: 12px;
+  --lp-shadow-sm: 0 2px 10px rgba(20, 33, 48, 0.06);
+  --lp-shadow-md: 0 12px 32px rgba(20, 33, 48, 0.1);
+  --lp-shadow-lg: 0 30px 80px rgba(8, 16, 28, 0.45);
+  --lp-glass: rgba(255, 255, 255, 0.06);
+
+  font-family: "poppins", sans-serif;
+  color: var(--lp-ink);
+  background: var(--lp-ice);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+.landing ::selection {
+  background: rgba(243, 156, 18, 0.3);
+}
+
+/* ---- Layout ---- */
+.lp-container {
+  width: 100%;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+.lp-section {
+  padding: 110px 0;
+  position: relative;
+}
+
+/* ---- Cabeçalho de seção ---- */
+.lp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-orange-deep);
+  background: rgba(243, 156, 18, 0.1);
+  border: 1px solid rgba(243, 156, 18, 0.25);
+}
+
+.lp-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lp-orange);
+  box-shadow: 0 0 10px rgba(243, 156, 18, 0.9);
+}
+
+.lp-eyebrow--dark {
+  color: var(--lp-orange-soft);
+  background: rgba(243, 156, 18, 0.12);
+  border-color: rgba(243, 156, 18, 0.3);
+}
+
+.lp-title {
+  font-size: clamp(30px, 4.2vw, 46px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--lp-navy);
+  margin: 18px 0 0;
+}
+
+.lp-title--dark {
+  color: #f4f7fb;
+}
+
+.lp-subtitle {
+  font-size: clamp(15.5px, 1.6vw, 17.5px);
+  line-height: 1.7;
+  color: var(--lp-muted);
+  max-width: 640px;
+  margin: 18px 0 0;
+  font-weight: 400;
+}
+
+.lp-subtitle--dark {
+  color: var(--lp-muted-dark);
+}
+
+.lp-section-head {
+  max-width: 720px;
+}
+
+.lp-section-head--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.lp-section-head--center .lp-subtitle {
+  margin-inline: auto;
+}
+
+/* ---- Texto com gradiente ---- */
+.lp-grad-text {
+  background: var(--lp-grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ---- Botões ---- */
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 30px;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease,
+    border-color 0.25s ease, color 0.25s ease;
+  will-change: transform;
+}
+
+.lp-btn svg {
+  transition: transform 0.25s ease;
+}
+
+.lp-btn:hover svg {
+  transform: translateX(3px);
+}
+
+.lp-btn--primary {
+  color: #1d1303;
+  background: var(--lp-grad-orange);
+  box-shadow: 0 10px 30px rgba(243, 156, 18, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.lp-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(243, 156, 18, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.lp-btn--ghost {
+  color: #eef3f9;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.lp-btn--ghost:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.lp-btn--navy {
+  color: #fff;
+  background: var(--lp-navy);
+  box-shadow: 0 10px 28px rgba(44, 62, 80, 0.3);
+}
+
+.lp-btn--navy:hover {
+  transform: translateY(-2px);
+  background: #233344;
+  box-shadow: 0 16px 36px rgba(44, 62, 80, 0.38);
+}
+
+/* ---- Scroll reveal ----
+   Elementos com [data-reveal] entram suaves quando visíveis.
+   Use style="--d: .15s" para escalonar a entrada. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease var(--d, 0s), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .landing *,
+  .landing *::before,
+  .landing *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .lp-section {
+    padding: 76px 0;
+  }
+}
