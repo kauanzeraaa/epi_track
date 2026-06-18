@@ -1,4 +1,8 @@
 <script setup>
+// IMPORT YOUR REAL DASHBOARD IMAGE HERE
+// E.g., import imgDashboardHero from '../../assets/prints/print-dashboard-desk.png'
+import imgDashboardHero from '../../assets/prints/print-dashboard.png'
+
 const kpis = [
   { label: 'EPIs em estoque', value: '1.248', delta: '+4,2%', up: true },
   { label: 'Alertas de CA', value: '07', delta: '-12%', up: false },
@@ -16,7 +20,6 @@ const deliveries = [
 
 <template>
   <section class="hero">
-    <!-- Camadas de fundo: grid, glows e orbs -->
     <div class="hero__bg" aria-hidden="true">
       <div class="hero__grid"></div>
       <div class="hero__glow hero__glow--orange"></div>
@@ -68,63 +71,15 @@ const deliveries = [
         </div>
       </div>
 
-      <!-- Mockup do dashboard construído em CSS -->
       <div class="hero__visual">
-        <div class="mockup">
-          <div class="mockup__chrome">
-            <span class="mockup__dot" style="background: #ff5f57"></span>
-            <span class="mockup__dot" style="background: #febc2e"></span>
-            <span class="mockup__dot" style="background: #28c840"></span>
-            <span class="mockup__url">app.epitrack.com.br/dashboard</span>
-          </div>
-
-          <div class="mockup__body">
-            <aside class="mockup__sidebar">
-              <div class="mockup__logo"></div>
-              <div class="mockup__nav-item is-active"></div>
-              <div class="mockup__nav-item"></div>
-              <div class="mockup__nav-item"></div>
-              <div class="mockup__nav-item"></div>
-              <div class="mockup__nav-item"></div>
-            </aside>
-
-            <div class="mockup__main">
-              <div class="mockup__kpis">
-                <div v-for="kpi in kpis" :key="kpi.label" class="mockup__kpi">
-                  <span class="mockup__kpi-label">{{ kpi.label }}</span>
-                  <span class="mockup__kpi-value">{{ kpi.value }}</span>
-                  <span class="mockup__kpi-delta" :class="kpi.up ? 'is-up' : 'is-down'">{{ kpi.delta }}</span>
-                </div>
-              </div>
-
-              <div class="mockup__chart">
-                <span class="mockup__panel-title">Entregas por mês</span>
-                <div class="mockup__bars">
-                  <span
-                    v-for="(bar, i) in bars"
-                    :key="i"
-                    class="mockup__bar"
-                    :style="{ height: bar + '%', animationDelay: 0.5 + i * 0.07 + 's' }"
-                  ></span>
-                </div>
-              </div>
-
-              <div class="mockup__list">
-                <span class="mockup__panel-title">Últimas entregas</span>
-                <div v-for="row in deliveries" :key="row.name" class="mockup__row">
-                  <span class="mockup__avatar">{{ row.name.charAt(0) }}</span>
-                  <span class="mockup__row-name">{{ row.name }}</span>
-                  <span class="mockup__row-item">{{ row.item }}</span>
-                  <span class="mockup__chip" :class="row.status === 'Entregue' ? 'is-ok' : 'is-warn'">
-                    {{ row.status }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="mockup-image-wrapper">
+          <img 
+            :src="imgDashboardHero" 
+            alt="Dashboard Real do EPI TRACK" 
+            class="mockup-image"
+          />
         </div>
 
-        <!-- Cards flutuantes -->
         <div class="float-card float-card--alert">
           <span class="float-card__icon float-card__icon--amber">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -158,6 +113,7 @@ const deliveries = [
 </template>
 
 <style scoped>
+/* (Keep the background, grid, glow, and orb styles exactly as they were) */
 .hero {
   position: relative;
   min-height: 100vh;
@@ -169,7 +125,6 @@ const deliveries = [
   padding: 150px 0 110px;
 }
 
-/* ---------- Fundo ---------- */
 .hero__bg {
   position: absolute;
   inset: 0;
@@ -243,12 +198,9 @@ const deliveries = [
 }
 
 @keyframes lp-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-/* ---------- Conteúdo ---------- */
 .hero__inner {
   position: relative;
   display: grid;
@@ -269,14 +221,8 @@ const deliveries = [
 .hero__content > *:nth-child(5) { animation-delay: 0.52s; }
 
 @keyframes lp-rise {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: none; }
 }
 
 .hero__badge {
@@ -305,12 +251,8 @@ const deliveries = [
 }
 
 @keyframes lp-pulse {
-  70% {
-    box-shadow: 0 0 0 9px rgba(243, 156, 18, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(243, 156, 18, 0);
-  }
+  70% { box-shadow: 0 0 0 9px rgba(243, 156, 18, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); }
 }
 
 .hero__title {
@@ -363,231 +305,33 @@ const deliveries = [
   color: var(--lp-muted-dark);
 }
 
-/* ---------- Mockup ---------- */
+/* ---------- NEW: Real Image Wrapper Styles ---------- */
 .hero__visual {
   position: relative;
   opacity: 0;
   animation: lp-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+  z-index: 10;
 }
 
-.mockup {
-  border-radius: 18px;
-  background: rgba(16, 29, 46, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--lp-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+.mockup-image-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  
+  /* 3D Perspective Effect */
   transform: perspective(1400px) rotateX(4deg) rotateY(-6deg);
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
 }
 
-.hero__visual:hover .mockup {
+.hero__visual:hover .mockup-image-wrapper {
   transform: perspective(1400px) rotateX(0deg) rotateY(0deg);
 }
 
-.mockup__chrome {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.mockup__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.mockup__url {
-  margin-left: 12px;
-  padding: 4px 14px;
-  border-radius: 7px;
-  font-size: 10.5px;
-  color: rgba(238, 243, 249, 0.45);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.mockup__body {
-  display: grid;
-  grid-template-columns: 52px 1fr;
-}
-
-.mockup__sidebar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.mockup__logo {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: var(--lp-grad-orange);
-  margin-bottom: 8px;
-  box-shadow: 0 4px 14px rgba(243, 156, 18, 0.4);
-}
-
-.mockup__nav-item {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.mockup__nav-item.is-active {
-  background: rgba(243, 156, 18, 0.28);
-  outline: 1px solid rgba(243, 156, 18, 0.5);
-}
-
-.mockup__main {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-}
-
-.mockup__kpis {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.mockup__kpi {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.mockup__kpi-label {
-  font-size: 9px;
-  color: rgba(238, 243, 249, 0.5);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mockup__kpi-value {
-  font-size: 19px;
-  font-weight: 700;
-  color: #f4f7fb;
-  letter-spacing: -0.02em;
-}
-
-.mockup__kpi-delta {
-  font-size: 9px;
-  font-weight: 600;
-}
-
-.mockup__kpi-delta.is-up { color: #2ecc71; }
-.mockup__kpi-delta.is-down { color: #f5b041; }
-
-.mockup__panel-title {
+.mockup-image {
+  width: 100%;
+  height: auto;
   display: block;
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(238, 243, 249, 0.6);
-  margin-bottom: 10px;
-}
-
-.mockup__chart {
-  padding: 14px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.mockup__bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 7px;
-  height: 84px;
-}
-
-.mockup__bar {
-  flex: 1;
-  border-radius: 4px 4px 2px 2px;
-  background: linear-gradient(180deg, rgba(243, 156, 18, 0.95), rgba(243, 156, 18, 0.25));
-  transform-origin: bottom;
-  transform: scaleY(0);
-  animation: lp-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes lp-grow {
-  to {
-    transform: scaleY(1);
-  }
-}
-
-.mockup__list {
-  padding: 14px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.mockup__row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.mockup__avatar {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9.5px;
-  font-weight: 600;
-  color: #f4f7fb;
-  background: var(--lp-navy-700);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.mockup__row-name {
-  font-size: 10.5px;
-  font-weight: 500;
-  color: rgba(238, 243, 249, 0.85);
-  white-space: nowrap;
-}
-
-.mockup__row-item {
-  flex: 1;
-  font-size: 10px;
-  color: rgba(238, 243, 249, 0.45);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mockup__chip {
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 8.5px;
-  font-weight: 600;
-}
-
-.mockup__chip.is-ok {
-  color: #2ecc71;
-  background: rgba(46, 204, 113, 0.12);
-}
-
-.mockup__chip.is-warn {
-  color: var(--lp-orange-soft);
-  background: rgba(243, 156, 18, 0.14);
 }
 
 /* ---------- Cards flutuantes ---------- */
@@ -604,6 +348,7 @@ const deliveries = [
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   animation: lp-float 6s ease-in-out infinite;
+  z-index: 20; /* Ensure they stay above the image */
 }
 
 .float-card strong {
@@ -652,12 +397,8 @@ const deliveries = [
 }
 
 @keyframes lp-float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-12px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
 }
 
 /* ---------- Indicador de scroll ---------- */
@@ -684,77 +425,34 @@ const deliveries = [
 }
 
 @keyframes lp-scroll-hint {
-  0%, 100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  60% {
-    transform: translateY(12px);
-    opacity: 0.2;
-  }
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  60% { transform: translateY(12px); opacity: 0.2; }
 }
 
 /* ---------- Responsivo ---------- */
 @media (max-width: 1024px) {
-  .hero__inner {
-    gap: 40px;
-  }
-
-  .hero__stats {
-    gap: 28px;
-  }
+  .hero__inner { gap: 40px; }
+  .hero__stats { gap: 28px; }
 }
 
 @media (max-width: 920px) {
-  .hero {
-    padding: 130px 0 90px;
-    min-height: auto;
-  }
-
-  .hero__inner {
-    grid-template-columns: 1fr;
-    gap: 72px;
-  }
-
-  .hero__visual {
-    max-width: 560px;
-    margin-inline: auto;
-    width: 100%;
-  }
-
-  .mockup {
-    transform: none;
-  }
-
-  .float-card--alert {
-    right: -6px;
-  }
-
-  .float-card--ok {
-    left: -6px;
-  }
-
-  .hero__scroll {
-    display: none;
-  }
+  .hero { padding: 130px 0 90px; min-height: auto; }
+  .hero__inner { grid-template-columns: 1fr; gap: 72px; }
+  .hero__visual { max-width: 560px; margin-inline: auto; width: 100%; }
+  
+  /* Remove the 3D effect on smaller screens for better visibility */
+  .mockup-image-wrapper { transform: none; }
+  .hero__visual:hover .mockup-image-wrapper { transform: none; }
+  
+  .float-card--alert { right: -6px; }
+  .float-card--ok { left: -6px; }
+  .hero__scroll { display: none; }
 }
 
 @media (max-width: 480px) {
-  .hero__stats {
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  .hero__ctas .lp-btn {
-    width: 100%;
-  }
-
-  .float-card {
-    padding: 10px 14px;
-  }
-
-  .float-card--alert {
-    top: -18px;
-  }
+  .hero__stats { flex-direction: column; gap: 18px; }
+  .hero__ctas .lp-btn { width: 100%; }
+  .float-card { padding: 10px 14px; }
+  .float-card--alert { top: -18px; }
 }
 </style>
