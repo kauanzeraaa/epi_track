@@ -1,21 +1,7 @@
 <script setup>
-// IMPORT YOUR REAL DASHBOARD IMAGE HERE
-// E.g., import imgDashboardHero from '../../assets/prints/print-dashboard-desk.png'
+
 import imgDashboardHero from '../../assets/prints/print-dashboard.png'
 
-const kpis = [
-  { label: 'EPIs em estoque', value: '1.248', delta: '+4,2%', up: true },
-  { label: 'Alertas de CA', value: '07', delta: '-12%', up: false },
-  { label: 'Entregas hoje', value: '32', delta: '+9,1%', up: true },
-]
-
-const bars = [42, 58, 36, 70, 52, 84, 64, 92, 58, 76, 88, 100]
-
-const deliveries = [
-  { name: 'João Silva', item: 'Capacete Classe B', status: 'Entregue' },
-  { name: 'Maria Souza', item: 'Luva Nitrílica', status: 'Entregue' },
-  { name: 'Pedro Lima', item: 'Óculos Ampla Visão', status: 'Pendente' },
-]
 </script>
 
 <template>
@@ -113,7 +99,6 @@ const deliveries = [
 </template>
 
 <style scoped>
-/* (Keep the background, grid, glow, and orb styles exactly as they were) */
 .hero {
   position: relative;
   min-height: 100vh;
@@ -305,7 +290,7 @@ const deliveries = [
   color: var(--lp-muted-dark);
 }
 
-/* ---------- NEW: Real Image Wrapper Styles ---------- */
+/* Real Image Wrapper Styles */
 .hero__visual {
   position: relative;
   opacity: 0;
@@ -334,7 +319,7 @@ const deliveries = [
   display: block;
 }
 
-/* ---------- Cards flutuantes ---------- */
+/* Cards flutuantes */
 .float-card {
   position: absolute;
   display: flex;
@@ -401,7 +386,7 @@ const deliveries = [
   50% { transform: translateY(-12px); }
 }
 
-/* ---------- Indicador de scroll ---------- */
+/* Indicador de scroll */
 .hero__scroll {
   position: absolute;
   bottom: 30px;
@@ -429,7 +414,7 @@ const deliveries = [
   60% { transform: translateY(12px); opacity: 0.2; }
 }
 
-/* ---------- Responsivo ---------- */
+/* Responsivo */
 @media (max-width: 1024px) {
   .hero__inner { gap: 40px; }
   .hero__stats { gap: 28px; }
